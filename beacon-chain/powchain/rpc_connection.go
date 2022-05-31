@@ -17,7 +17,7 @@ import (
 )
 
 func (s *Service) setupExecutionClientConnections(ctx context.Context, currEndpoint network.Endpoint) error {
-	client, err := s.newRPCClientWithAuth(ctx, currEndpoint)
+	client, err := NewRPCClientWithAuth(ctx, currEndpoint)
 	if err != nil {
 		return errors.Wrap(err, "could not dial execution node")
 	}
@@ -142,7 +142,7 @@ func (s *Service) fallbackToNextEndpoint() {
 }
 
 // Initializes an RPC connection with authentication headers.
-func (s *Service) newRPCClientWithAuth(ctx context.Context, endpoint network.Endpoint) (*gethRPC.Client, error) {
+func NewRPCClientWithAuth(ctx context.Context, endpoint network.Endpoint) (*gethRPC.Client, error) {
 	// Need to handle ipc and http
 	var client *gethRPC.Client
 	u, err := url.Parse(endpoint.Url)

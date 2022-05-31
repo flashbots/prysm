@@ -14,6 +14,7 @@ import (
 	"github.com/prysmaticlabs/prysm/beacon-chain/node"
 	"github.com/prysmaticlabs/prysm/cmd"
 	blockchaincmd "github.com/prysmaticlabs/prysm/cmd/beacon-chain/blockchain"
+	buildercmd "github.com/prysmaticlabs/prysm/cmd/beacon-chain/builder"
 	dbcommands "github.com/prysmaticlabs/prysm/cmd/beacon-chain/db"
 	"github.com/prysmaticlabs/prysm/cmd/beacon-chain/flags"
 	powchaincmd "github.com/prysmaticlabs/prysm/cmd/beacon-chain/powchain"
@@ -37,6 +38,8 @@ var appFlags = []cli.Flag{
 	flags.HTTPWeb3ProviderFlag,
 	flags.ExecutionJWTSecretFlag,
 	flags.FallbackWeb3ProviderFlag,
+	flags.HTTPBuilderFlag,
+	flags.FallbackBuilderFlag,
 	flags.RPCHost,
 	flags.RPCPort,
 	flags.CertFlag,
@@ -186,6 +189,14 @@ func main() {
 		if err := cmd.ExpandWeb3EndpointsIfFile(ctx, flags.FallbackWeb3ProviderFlag); err != nil {
 			return err
 		}
+
+		if err := cmd.ExpandSingleEndpointIfFile(ctx, flags.HTTPBuilderFlag); err != nil {
+			return err
+		}
+		if err := cmd.ExpandWeb3EndpointsIfFile(ctx, flags.FallbackBuilderFlag); err != nil {
+			return err
+		}
+
 		if ctx.IsSet(flags.SetGCPercent.Name) {
 			runtimeDebug.SetGCPercent(ctx.Int(flags.SetGCPercent.Name))
 		}
@@ -244,9 +255,14 @@ func startNode(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
+	builderFlagOpts, err := buildercmd.FlagOptions(ctx)
+	if err != nil {
+		return err
+	}
 	opts := []node.Option{
 		node.WithBlockchainFlagOptions(blockchainFlagOpts),
 		node.WithPowchainFlagOptions(powchainFlagOpts),
+		node.WithBuilderFlagOptions(builderFlagOpts),
 	}
 
 	optFuncs := []func(*cli.Context) (node.Option, error){

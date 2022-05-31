@@ -111,6 +111,8 @@ var appHelpFlagGroups = []flagGroup{
 			flags.HTTPWeb3ProviderFlag,
 			flags.ExecutionJWTSecretFlag,
 			flags.FallbackWeb3ProviderFlag,
+			flags.HTTPBuilderFlag,
+			flags.FallbackBuilderFlag,
 			flags.SetGCPercent,
 			flags.HeadSync,
 			flags.DisableSync,

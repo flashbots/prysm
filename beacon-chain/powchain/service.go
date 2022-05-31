@@ -351,7 +351,7 @@ func (s *Service) ETH1Endpoints() []string {
 func (s *Service) ETH1ConnectionErrors() []error {
 	var errs []error
 	for _, ep := range s.cfg.httpEndpoints {
-		client, err := s.newRPCClientWithAuth(s.ctx, ep)
+		client, err := NewRPCClientWithAuth(s.ctx, ep)
 		if err != nil {
 			client.Close()
 			errs = append(errs, err)
@@ -853,7 +853,7 @@ func (s *Service) ensureValidPowchainData(ctx context.Context) error {
 	return nil
 }
 
-func dedupEndpoints(endpoints []string) []string {
+func DedupEndpoints(endpoints []string) []string {
 	selectionMap := make(map[string]bool)
 	newEndpoints := make([]string, 0, len(endpoints))
 	for _, point := range endpoints {

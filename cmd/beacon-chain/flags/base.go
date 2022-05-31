@@ -34,6 +34,15 @@ var (
 		Name:  "fallback-web3provider",
 		Usage: "A mainchain web3 provider string http endpoint. This is our fallback web3 provider, this flag may be used multiple times.",
 	}
+	HTTPBuilderFlag = &cli.StringFlag{
+		Name:  "http-builder",
+		Usage: "A builder string http endpoint. Can contain auth header as well in the format --http-builder=\"https://127.0.0.1:28545,Basic xxx\" for project secret (base64 encoded) and --http-builder=\"https://127.0.0.1:28545,Bearer xxx\" for jwt use",
+		Value: "http://localhost:28545",
+	}
+	FallbackBuilderFlag = &cli.StringSliceFlag{
+		Name:  "fallback-builder",
+		Usage: "A builder string http endpoint. This is our fallback builder, this flag may be used multiple times.",
+	}
 	// DepositContractFlag defines a flag for the deposit contract address.
 	DepositContractFlag = &cli.StringFlag{
 		Name:  "deposit-contract",

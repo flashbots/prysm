@@ -20,6 +20,7 @@ import (
 	apigateway "github.com/prysmaticlabs/prysm/api/gateway"
 	"github.com/prysmaticlabs/prysm/async/event"
 	"github.com/prysmaticlabs/prysm/beacon-chain/blockchain"
+	"github.com/prysmaticlabs/prysm/beacon-chain/builder"
 	"github.com/prysmaticlabs/prysm/beacon-chain/cache"
 	"github.com/prysmaticlabs/prysm/beacon-chain/cache/depositcache"
 	"github.com/prysmaticlabs/prysm/beacon-chain/db"
@@ -76,6 +77,7 @@ const debugGrpcMaxMsgSize = 1 << 27
 type serviceFlagOpts struct {
 	blockchainFlagOpts []blockchain.Option
 	powchainFlagOpts   []powchain.Option
+	builderFlagOpts    []builder.Option
 }
 
 // BeaconNode defines a struct that handles the services running a random beacon chain
@@ -194,6 +196,11 @@ func New(cliCtx *cli.Context, opts ...Option) (*BeaconNode, error) {
 
 	log.Debugln("Registering POW Chain Service")
 	if err := beacon.registerPOWChainService(); err != nil {
+		return nil, err
+	}
+
+	log.Debugln("Registering POW Chain Service")
+	if err := beacon.registerBuilderService(); err != nil {
 		return nil, err
 	}
 
@@ -566,6 +573,11 @@ func (b *BeaconNode) registerBlockchainService() error {
 		return err
 	}
 
+	var builderService *builder.Service
+	if err := b.services.FetchService(&builderService); err != nil {
+		return err
+	}
+
 	var attService *attestations.Service
 	if err := b.services.FetchService(&attService); err != nil {
 		return err
@@ -578,6 +590,7 @@ func (b *BeaconNode) registerBlockchainService() error {
 		blockchain.WithDepositCache(b.depositCache),
 		blockchain.WithChainStartFetcher(web3Service),
 		blockchain.WithExecutionEngineCaller(web3Service),
+		blockchain.WithBuilderCaller(builderService),
 		blockchain.WithAttestationPool(b.attestationPool),
 		blockchain.WithExitPool(b.exitPool),
 		blockchain.WithSlashingPool(b.slashingsPool),
@@ -627,6 +640,21 @@ func (b *BeaconNode) registerPOWChainService() error {
 	}
 
 	return b.services.RegisterService(web3Service)
+}
+
+func (b *BeaconNode) registerBuilderService() error {
+	if b.cliCtx.Bool(testSkipPowFlag) {
+		return b.services.RegisterService(&builder.Service{})
+	}
+	opts := append(
+		b.serviceFlagOpts.builderFlagOpts,
+	)
+	builderService, err := builder.NewService(b.ctx, opts...)
+	if err != nil {
+		return errors.Wrap(err, "could not register builder service")
+	}
+
+	return b.services.RegisterService(builderService)
 }
 
 func (b *BeaconNode) registerSyncService() error {

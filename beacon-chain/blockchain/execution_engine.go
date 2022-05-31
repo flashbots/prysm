@@ -73,6 +73,17 @@ func (s *Service) notifyForkchoiceUpdate(ctx context.Context, arg *notifyForkcho
 		return nil, errors.Wrap(err, "could not get payload attribute")
 	}
 
+	proposer, err := arg.headState.ValidatorAtIndex(proposerId)
+
+	builderForkchoiceData := &enginev1.BuilderPayloadAttributes{
+		Timestamp:             attr.Timestamp,
+		Slot:                  uint64(nextSlot),
+		ProposerPubkey:        proposer.PublicKey,
+		PrevRandao:            attr.PrevRandao,
+		SuggestedFeeRecipient: attr.SuggestedFeeRecipient,
+	}
+	go s.cfg.BuilderCaller.NewPayloadAttributes(ctx, builderForkchoiceData)
+
 	payloadID, lastValidHash, err := s.cfg.ExecutionEngineCaller.ForkchoiceUpdated(ctx, fcs, attr)
 	if err != nil {
 		switch err {

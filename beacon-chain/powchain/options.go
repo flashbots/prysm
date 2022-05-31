@@ -17,7 +17,7 @@ type Option func(s *Service) error
 // and sets the "current" endpoint that will be used first.
 func WithHttpEndpoints(endpointStrings []string) Option {
 	return func(s *Service) error {
-		stringEndpoints := dedupEndpoints(endpointStrings)
+		stringEndpoints := DedupEndpoints(endpointStrings)
 		endpoints := make([]network.Endpoint, len(stringEndpoints))
 		for i, e := range stringEndpoints {
 			endpoints[i] = HttpEndpoint(e)
@@ -39,7 +39,7 @@ func WithHttpEndpointsAndJWTSecret(endpointStrings []string, secret []byte) Opti
 		if len(secret) == 0 {
 			return nil
 		}
-		stringEndpoints := dedupEndpoints(endpointStrings)
+		stringEndpoints := DedupEndpoints(endpointStrings)
 		endpoints := make([]network.Endpoint, len(stringEndpoints))
 		// Overwrite authorization type for all endpoints to be of a bearer
 		// type.

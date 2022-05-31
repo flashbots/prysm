@@ -81,3 +81,12 @@ func parsePowchainEndpoints(c *cli.Context) []string {
 	endpoints = append(endpoints, c.StringSlice(flags.FallbackWeb3ProviderFlag.Name)...)
 	return endpoints
 }
+
+func parseBuilderEndpoints(c *cli.Context) []string {
+	if c.String(flags.HTTPBuilderFlag.Name) == "" && len(c.StringSlice(flags.FallbackBuilderFlag.Name)) == 0 {
+		log.Error("No builder specified to run with the beacon node.")
+	}
+	endpoints := []string{c.String(flags.HTTPBuilderFlag.Name)}
+	endpoints = append(endpoints, c.StringSlice(flags.FallbackBuilderFlag.Name)...)
+	return endpoints
+}
