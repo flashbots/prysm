@@ -9,7 +9,7 @@ import (
 	"github.com/prysmaticlabs/prysm/beacon-chain/core/helpers"
 	"github.com/prysmaticlabs/prysm/beacon-chain/core/time"
 	"github.com/prysmaticlabs/prysm/beacon-chain/core/transition"
-	"github.com/prysmaticlabs/prysm/beacon-chain/db/kv"
+	_ "github.com/prysmaticlabs/prysm/beacon-chain/db/kv"
 	"github.com/prysmaticlabs/prysm/beacon-chain/powchain"
 	"github.com/prysmaticlabs/prysm/beacon-chain/state"
 	"github.com/prysmaticlabs/prysm/config/params"
@@ -248,10 +248,11 @@ func (s *Service) optimisticCandidateBlock(ctx context.Context, blk interfaces.B
 // getPayloadAttributes returns the payload attributes for the given state and slot.
 // The attribute is required to initiate a payload build process in the context of an `engine_forkchoiceUpdated` call.
 func (s *Service) getPayloadAttribute(ctx context.Context, st state.BeaconState, slot types.Slot) (bool, *enginev1.PayloadAttributes, types.ValidatorIndex, error) {
-	proposerID, _, ok := s.cfg.ProposerSlotIndexCache.GetProposerPayloadIDs(slot)
+	proposerID := types.ValidatorIndex(0)
+	/* proposerID, _, ok := s.cfg.ProposerSlotIndexCache.GetProposerPayloadIDs(slot)
 	if !ok { // There's no need to build attribute if there is no proposer for slot.
 		return false, nil, 0, nil
-	}
+	} */
 
 	// Get previous randao.
 	st = st.Copy()
@@ -266,7 +267,7 @@ func (s *Service) getPayloadAttribute(ctx context.Context, st state.BeaconState,
 
 	// Get fee recipient.
 	feeRecipient := params.BeaconConfig().DefaultFeeRecipient
-	recipient, err := s.cfg.BeaconDB.FeeRecipientByValidatorID(ctx, proposerID)
+	/*recipient, err := s.cfg.BeaconDB.FeeRecipientByValidatorID(ctx, proposerID)
 	switch {
 	case errors.Is(err, kv.ErrNotFoundFeeRecipient):
 		if feeRecipient.String() == params.BeaconConfig().EthBurnAddressHex {
@@ -282,7 +283,7 @@ func (s *Service) getPayloadAttribute(ctx context.Context, st state.BeaconState,
 		return false, nil, 0, errors.Wrap(err, "could not get fee recipient in db")
 	default:
 		feeRecipient = recipient
-	}
+	}*/
 
 	// Get timestamp.
 	t, err := slots.ToTime(uint64(s.genesisTime.Unix()), slot)
