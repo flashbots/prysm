@@ -115,6 +115,7 @@ func (s *Service) spawnProcessAttestationsRoutine(stateFeed *event.Feed) {
 		}
 
 		st := slots.NewSlotTicker(s.genesisTime, params.BeaconConfig().SecondsPerSlot)
+		missedSt := slots.NewSlotTickerWithOffset(s.genesisTime, 4*time.Second, params.BeaconConfig().SecondsPerSlot)
 		for {
 			select {
 			case <-s.ctx.Done():
@@ -128,6 +129,24 @@ func (s *Service) spawnProcessAttestationsRoutine(stateFeed *event.Feed) {
 				if err := s.UpdateHead(s.ctx); err != nil {
 					log.WithError(err).Error("Could not process attestations and update head")
 					return
+				}
+			case <-missedSt.C():
+				headBlock, err := s.headBlock()
+				if err != nil {
+					log.WithError(err).Error("Could not get head block")
+					continue
+				}
+				if headBlock.Block().Slot() != s.CurrentSlot() {
+					log.Info("missed slot, sending fcu")
+					arg := &notifyForkchoiceUpdateArg{
+						headState: s.headState(s.ctx),
+						headRoot:  s.headRoot(),
+						headBlock: headBlock.Block(),
+					}
+					_, err := s.notifyForkchoiceUpdate(s.ctx, arg)
+					if err != nil {
+						log.WithError(err).Error("could not notify forkchoice update on same head")
+					}
 				}
 			}
 		}
@@ -196,6 +215,7 @@ func (s *Service) notifyEngineIfChangedHead(ctx context.Context, newHeadRoot [32
 		log.WithError(err).Error("Could not get state from db")
 		return nil
 	}
+
 	arg := &notifyForkchoiceUpdateArg{
 		headState: headState,
 		headRoot:  newHeadRoot,
