@@ -271,22 +271,24 @@ func (s *Service) getPayloadAttribute(ctx context.Context, st state.BeaconState,
 
 	// Get fee recipient.
 	feeRecipient := params.BeaconConfig().DefaultFeeRecipient
-	recipient, err := s.cfg.BeaconDB.FeeRecipientByValidatorID(ctx, proposerID)
-	switch {
-	case errors.Is(err, kv.ErrNotFoundFeeRecipient):
-		if feeRecipient.String() == params.BeaconConfig().EthBurnAddressHex {
-			logrus.WithFields(logrus.Fields{
-				"validatorIndex": proposerID,
-				"burnAddress":    params.BeaconConfig().EthBurnAddressHex,
-			}).Warn("Fee recipient is currently using the burn address, " +
-				"you will not be rewarded transaction fees on this setting. " +
-				"Please set a different eth address as the fee recipient. " +
-				"Please refer to our documentation for instructions")
+	if proposerOk {
+		recipient, err := s.cfg.BeaconDB.FeeRecipientByValidatorID(ctx, proposerID)
+		switch {
+		case errors.Is(err, kv.ErrNotFoundFeeRecipient):
+			if feeRecipient.String() == params.BeaconConfig().EthBurnAddressHex {
+				logrus.WithFields(logrus.Fields{
+					"validatorIndex": proposerID,
+					"burnAddress":    params.BeaconConfig().EthBurnAddressHex,
+				}).Warn("Fee recipient is currently using the burn address, " +
+					"you will not be rewarded transaction fees on this setting. " +
+					"Please set a different eth address as the fee recipient. " +
+					"Please refer to our documentation for instructions")
+			}
+		case err != nil:
+			return false, nil, 0, errors.Wrap(err, "could not get fee recipient in db")
+		default:
+			feeRecipient = recipient
 		}
-	case err != nil:
-		return false, nil, 0, errors.Wrap(err, "could not get fee recipient in db")
-	default:
-		feeRecipient = recipient
 	}
 
 	// Get timestamp.
