@@ -264,6 +264,37 @@ func (p *PayloadAttributes) UnmarshalJSON(enc []byte) error {
 	return nil
 }
 
+type builderPayloadAttributesJSON struct {
+	Timestamp             hexutil.Uint64 `json:"timestamp"`
+	PrevRandao            hexutil.Bytes  `json:"prevRandao"`
+	SuggestedFeeRecipient hexutil.Bytes  `json:"suggestedFeeRecipient"`
+	Slot                  types.Slot     `json:"slot"`
+}
+
+// MarshalJSON --
+func (p *BuilderPayloadAttributes) MarshalJSON() ([]byte, error) {
+	return json.Marshal(builderPayloadAttributesJSON{
+		Timestamp:             hexutil.Uint64(p.Timestamp),
+		PrevRandao:            p.PrevRandao,
+		SuggestedFeeRecipient: p.SuggestedFeeRecipient,
+		Slot:                  p.Slot,
+	})
+}
+
+// UnmarshalJSON --
+func (p *BuilderPayloadAttributes) UnmarshalJSON(enc []byte) error {
+	dec := builderPayloadAttributesJSON{}
+	if err := json.Unmarshal(enc, &dec); err != nil {
+		return err
+	}
+	*p = BuilderPayloadAttributes{}
+	p.Timestamp = uint64(dec.Timestamp)
+	p.PrevRandao = dec.PrevRandao
+	p.SuggestedFeeRecipient = dec.SuggestedFeeRecipient
+	p.Slot = dec.Slot
+	return nil
+}
+
 type payloadStatusJSON struct {
 	LatestValidHash *common.Hash `json:"latestValidHash"`
 	Status          string       `json:"status"`
