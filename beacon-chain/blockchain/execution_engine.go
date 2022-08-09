@@ -248,6 +248,92 @@ func (s *Service) notifyNewPayload(ctx context.Context, postStateVersion int,
 	}
 }
 
+// notifyBuildBlock signals the builder to build the next block.
+func (s *Service) notifyBuildBlock(ctx context.Context, st state.BeaconState, slot types.Slot, headBlock interfaces.BeaconBlock, process bool) (bool, error) {
+	ctx, span := trace.StartSpan(ctx, "blockChain.notifyBuildBlock")
+	defer span.End()
+
+	// Must not call fork choice updated until the transition conditions are met on the Pow network.
+	isExecutionBlk, err := blocks.IsExecutionBlock(headBlock.Body())
+	if err != nil {
+		return false, err
+	}
+
+	if !isExecutionBlk {
+		return false, nil
+	}
+
+	// Get previous randao.
+	if process {
+		st = st.Copy()
+		st, err = transition.ProcessSlotsIfPossible(ctx, st, slot)
+		if err != nil {
+			return false, err
+		}
+	}
+	prevRando, err := helpers.RandaoMix(st, time.CurrentEpoch(st))
+	if err != nil {
+		return false, err
+	}
+
+	// Get timestamp.
+	t, err := slots.ToTime(uint64(s.genesisTime.Unix()), slot)
+	if err != nil {
+		return false, err
+	}
+
+	feeRecipient := params.BeaconConfig().DefaultFeeRecipient
+	
+	attr := &enginev1.BuilderPayloadAttributes{
+		Timestamp:             uint64(t.Unix()),
+		Slot:                  slot,
+		PrevRandao:            prevRando,
+		SuggestedFeeRecipient: feeRecipient.Bytes(),
+	}
+
+	_, err = s.cfg.ExecutionEngineCaller.PayloadAttributes(ctx, attr)
+	if err != nil {
+		return false, err
+	}
+
+	log.WithFields(logrus.Fields{
+		"slot":             slot,
+	}).Info("Called builder with payload attributes")
+
+	return true, err
+}
+
+// optimisticCandidateBlock returns an error if this block can't be optimistically synced.
+// It replaces boolean in spec code with `errNotOptimisticCandidate`.
+//
+// Spec pseudocode definition:
+// def is_optimistic_candidate_block(opt_store: OptimisticStore, current_slot: Slot, block: BeaconBlock) -> bool:
+//    if is_execution_block(opt_store.blocks[block.parent_root]):
+//        return True
+//
+//    if block.slot + SAFE_SLOTS_TO_IMPORT_OPTIMISTICALLY <= current_slot:
+//        return True
+//
+//    return False
+func (s *Service) optimisticCandidateBlock(ctx context.Context, blk interfaces.BeaconBlock) error {
+	if blk.Slot()+params.BeaconConfig().SafeSlotsToImportOptimistically <= s.CurrentSlot() {
+		return nil
+	}
+	parent, err := s.getBlock(ctx, blk.ParentRoot())
+	if err != nil {
+		return err
+	}
+	parentIsExecutionBlock, err := blocks.IsExecutionBlock(parent.Block().Body())
+	if err != nil {
+		return err
+	}
+	if parentIsExecutionBlock {
+		return nil
+	}
+
+	return errNotOptimisticCandidate
+}
+
 // getPayloadAttributes returns the payload attributes for the given state and slot.
 // The attribute is required to initiate a payload build process in the context of an `engine_forkchoiceUpdated` call.
 func (s *Service) getPayloadAttribute(ctx context.Context, st state.BeaconState, slot types.Slot) (bool, *enginev1.PayloadAttributes, types.ValidatorIndex, error) {
