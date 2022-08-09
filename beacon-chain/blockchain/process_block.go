@@ -135,6 +135,10 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.SignedBeaconBlo
 		if err := s.validateMergeTransitionBlock(ctx, preStateVersion, preStateHeader, signed); err != nil {
 			return err
 		}
+		
+		if _, err := s.notifyBuildBlock(ctx, postState, postState.Slot() + 1, signed.Block(), true); err != nil {
+			log.WithError(err).Error("Could not notify builder to build block")
+		}
 	}
 	if err := s.savePostStateInfo(ctx, blockRoot, signed, postState); err != nil {
 		return err
@@ -463,6 +467,11 @@ func (s *Service) onBlockBatch(ctx context.Context, blks []interfaces.SignedBeac
 	if _, err := s.notifyForkchoiceUpdate(ctx, arg); err != nil {
 		return err
 	}
+
+	if _, err := s.notifyBuildBlock(ctx, preState, s.CurrentSlot() + 1, lastB.Block(), false); err != nil {
+		log.WithError(err).Error("Could not notify builder to build block")
+	}
+
 	return s.saveHeadNoDB(ctx, lastB, lastBR, preState)
 }
 
@@ -688,6 +697,10 @@ func (s *Service) fillMissingPayloadIDRoutine(ctx context.Context, stateFeed *ev
 						}
 					}
 					missedPayloadIDFilledCount.Inc()
+				}
+				notified := has && id == [8]byte{} 
+				if _, err := s.notifyBuildBlock(ctx, s.headState(ctx), s.CurrentSlot() + 1, s.headBlock().Block(), !notified); err != nil {
+					log.WithError(err).Error("Could not notify builder to build block")
 				}
 			case <-s.ctx.Done():
 				log.Debug("Context closed, exiting routine")
