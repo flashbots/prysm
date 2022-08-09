@@ -173,7 +173,6 @@ func (s *Service) notifyEngineIfChangedHead(ctx context.Context, newHeadRoot [32
 		log.WithError(err).Error("Could not get state from db")
 		return nil
 	}
-
 	arg := &notifyForkchoiceUpdateArg{
 		headState: headState,
 		headRoot:  newHeadRoot,
