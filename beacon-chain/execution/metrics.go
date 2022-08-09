@@ -67,6 +67,13 @@ var (
 		Name: "execution_server_error_count",
 		Help: "The number of errors that occurred due to server error",
 	})
+	payloadAttributesLatency = promauto.NewHistogram(
+		prometheus.HistogramOpts{
+			Name:    "payload_attributes_latency_milliseconds",
+			Help:    "Captures RPC latency for payloadAttributes in milliseconds",
+			Buckets: []float64{25, 50, 100, 200, 500, 1000, 2000, 4000},
+		},
+	)
 	reconstructedExecutionPayloadCount = promauto.NewCounter(prometheus.CounterOpts{
 		Name: "reconstructed_execution_payload_count",
 		Help: "Count the number of execution payloads that are reconstructed using JSON-RPC from payload headers",
