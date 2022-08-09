@@ -23,6 +23,8 @@ import (
 )
 
 const (
+	// PayloadAttributes request string for JSON-RPC
+	PayloadAttributesMethod = "builder_payloadAttributes"
 	// NewPayloadMethod v1 request string for JSON-RPC.
 	NewPayloadMethod = "engine_newPayloadV1"
 	// ForkchoiceUpdatedMethod v1 request string for JSON-RPC.
@@ -48,6 +50,12 @@ type ForkchoiceUpdatedResponse struct {
 	PayloadId *pb.PayloadIDBytes `json:"payloadId"`
 }
 
+// PayloadAttributesResponse is the response kind received by the
+// builder_payloadAttributes endpoint.
+type PayloadAttributesResponse struct {
+	Status *pb.PayloadStatus `json:"payloadStatus"`
+} 
+
 // ExecutionPayloadReconstructor defines a service that can reconstruct a full beacon
 // block with an execution payload from a signed beacon block and a connection
 // to an execution client's engine API.
@@ -69,7 +77,7 @@ type EngineCaller interface {
 		ctx context.Context, cfg *pb.TransitionConfiguration,
 	) error
 	ExecutionBlockByHash(ctx context.Context, hash common.Hash, withTxs bool) (*pb.ExecutionBlock, error)
-	GetTerminalBlockHash(ctx context.Context, transitionTime uint64) ([]byte, bool, error)
+	GetTerminalBlockHash(ctx context.Context) ([]byte, bool, error)
 }
 
 // NewPayload calls the engine_newPayloadV1 method via JSON-RPC.
@@ -285,6 +293,29 @@ func (s *Service) GetTerminalBlockHash(ctx context.Context, transitionTime uint6
 		}
 		blk = parentBlk
 	}
+}
+
+// PayloadAttributes sends payload attributes to a block builder to trigger building of a block
+func (s *Service) PayloadAttributes(ctx context.Context, attrs *pb.BuilderPayloadAttributes) ([]byte, error) {
+	ctx, span := trace.StartSpan(ctx, "powchain.builder-api-client.PayloadAttributes")
+	defer span.End()
+	start := time.Now()
+	defer func() {
+		payloadAttributesLatency.Observe(float64(time.Since(start).Milliseconds()))
+	}()
+	d := time.Now().Add(payloadAndForkchoiceUpdatedTimeout)
+	ctx, cancel := context.WithDeadline(ctx, d)
+	defer cancel()
+	result := &PayloadAttributesResponse{}
+	err := s.rpcClient.CallContext(ctx, result, PayloadAttributesMethod, attrs)
+	if err != nil {
+		return nil, handleRPCError(err)
+	}
+
+	if result.Status == nil {
+		return nil, ErrNilResponse
+	}
+	return nil, nil
 }
 
 // LatestExecutionBlock fetches the latest execution engine block by calling
