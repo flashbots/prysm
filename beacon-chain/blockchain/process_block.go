@@ -134,8 +134,8 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.SignedBeaconBlo
 		if err := s.validateMergeTransitionBlock(ctx, preStateVersion, preStateHeader, signed); err != nil {
 			return err
 		}
-		
-		if _, err := s.notifyBuildBlock(ctx, postState, postState.Slot() + 1, signed.Block(), true); err != nil {
+
+		if _, err := s.notifyBuildBlock(ctx, postState, postState.Slot()+1, signed.Block(), true); err != nil {
 			log.WithError(err).Error("Could not notify builder to build block")
 		}
 	}
@@ -467,7 +467,7 @@ func (s *Service) onBlockBatch(ctx context.Context, blks []interfaces.SignedBeac
 		return err
 	}
 
-	if _, err := s.notifyBuildBlock(ctx, preState, s.CurrentSlot() + 1, lastB.Block(), false); err != nil {
+	if _, err := s.notifyBuildBlock(ctx, preState, s.CurrentSlot()+1, lastB.Block(), false); err != nil {
 		log.WithError(err).Error("Could not notify builder to build block")
 	}
 
@@ -678,8 +678,9 @@ func (s *Service) fillMissingPayloadIDRoutine(ctx context.Context, stateFeed *ev
 				}
 				// Head root should be empty when retrieving proposer index for the next slot.
 				_, id, has := s.cfg.ProposerSlotIndexCache.GetProposerPayloadIDs(s.CurrentSlot()+1, [32]byte{} /* head root */)
+				notified := has && id == [8]byte{}
 				// There exists proposer for next slot, but we haven't called fcu w/ payload attribute yet.
-				if has && id == [8]byte{} {
+				if notified {
 					headBlock, err := s.headBlock()
 					if err != nil {
 						log.WithError(err).Error("Could not get head block")
@@ -694,10 +695,16 @@ func (s *Service) fillMissingPayloadIDRoutine(ctx context.Context, stateFeed *ev
 					}
 					missedPayloadIDFilledCount.Inc()
 				}
-				notified := has && id == [8]byte{} 
-				if _, err := s.notifyBuildBlock(ctx, s.headState(ctx), s.CurrentSlot() + 1, s.headBlock().Block(), !notified); err != nil {
-					log.WithError(err).Error("Could not notify builder to build block")
+
+				headBlock, err := s.headBlock()
+				if err != nil {
+					log.WithError(err).Error("Could not get head block")
+				} else {
+					if _, err := s.notifyBuildBlock(ctx, s.headState(ctx), s.CurrentSlot()+1, headBlock.Block(), !notified); err != nil {
+						log.WithError(err).Error("Could not notify builder to build block")
+					}
 				}
+
 			case <-s.ctx.Done():
 				log.Debug("Context closed, exiting routine")
 				return

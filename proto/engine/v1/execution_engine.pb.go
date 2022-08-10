@@ -837,6 +837,7 @@ type BuilderPayloadAttributes struct {
 	PrevRandao            []byte                                                         `protobuf:"bytes,2,opt,name=prev_randao,json=prevRandao,proto3" json:"prev_randao,omitempty" ssz-size:"32"`
 	SuggestedFeeRecipient []byte                                                         `protobuf:"bytes,3,opt,name=suggested_fee_recipient,json=suggestedFeeRecipient,proto3" json:"suggested_fee_recipient,omitempty" ssz-size:"20"`
 	Slot                  github_com_prysmaticlabs_prysm_consensus_types_primitives.Slot `protobuf:"varint,4,opt,name=slot,proto3" json:"slot,omitempty" cast-type:"github.com/prysmaticlabs/prysm/consensus-types/primitives.Slot"`
+	BlockHash             []byte                                                         `protobuf:"bytes,5,opt,name=block_hash,json=blockHash,proto3" json:"block_hash,omitempty" ssz-size:"32"`
 }
 
 func (x *BuilderPayloadAttributes) Reset() {
@@ -897,6 +898,13 @@ func (x *BuilderPayloadAttributes) GetSlot() github_com_prysmaticlabs_prysm_cons
 		return x.Slot
 	}
 	return github_com_prysmaticlabs_prysm_consensus_types_primitives.Slot(0)
+}
+
+func (x *BuilderPayloadAttributes) GetBlockHash() []byte {
+	if x != nil {
+		return x.BlockHash
+	}
+	return nil
 }
 
 type PayloadStatus struct {
