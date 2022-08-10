@@ -264,6 +264,11 @@ func (s *Service) notifyBuildBlock(ctx context.Context, st state.BeaconState, sl
 		return false, nil
 	}
 
+	block, err := headBlock.Body().Execution()
+	if err != nil {
+		return false, err
+	}
+
 	// Get previous randao.
 	if process {
 		st = st.Copy()
@@ -290,6 +295,7 @@ func (s *Service) notifyBuildBlock(ctx context.Context, st state.BeaconState, sl
 		Slot:                  slot,
 		PrevRandao:            prevRando,
 		SuggestedFeeRecipient: feeRecipient.Bytes(),
+		BlockHash:             block.BlockHash(),
 	}
 
 	_, err = s.cfg.ExecutionEngineCaller.PayloadAttributes(ctx, attr)
