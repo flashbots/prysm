@@ -682,8 +682,9 @@ func (s *Service) fillMissingPayloadIDRoutine(ctx context.Context, stateFeed *ev
 					continue
 				}
 				_, id, has := s.cfg.ProposerSlotIndexCache.GetProposerPayloadIDs(s.CurrentSlot()+1, s.headRoot())
+				notified := has && id == [8]byte{}
 				// There exists proposer for next slot, but we haven't called fcu w/ payload attribute yet.
-				if has && id == [8]byte{} {
+				if notified {
 					headBlock, err := s.headBlock()
 					if err != nil {
 						log.WithError(err).Error("Could not get head block")
@@ -698,10 +699,16 @@ func (s *Service) fillMissingPayloadIDRoutine(ctx context.Context, stateFeed *ev
 					}
 					missedPayloadIDFilledCount.Inc()
 				}
-				notified := has && id == [8]byte{} 
-				if _, err := s.notifyBuildBlock(ctx, s.headState(ctx), s.CurrentSlot() + 1, s.headBlock().Block(), !notified); err != nil {
-					log.WithError(err).Error("Could not notify builder to build block")
+				
+				headBlock, err := s.headBlock()
+				if err != nil {
+					log.WithError(err).Error("Could not get head block")
+				} else {
+					if _, err := s.notifyBuildBlock(ctx, s.headState(ctx), s.CurrentSlot() + 1, headBlock.Block(), !notified); err != nil {
+						log.WithError(err).Error("Could not notify builder to build block")
+					}
 				}
+
 			case <-s.ctx.Done():
 				log.Debug("Context closed, exiting routine")
 				return

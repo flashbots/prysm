@@ -269,15 +269,18 @@ type builderPayloadAttributesJSON struct {
 	PrevRandao            hexutil.Bytes  `json:"prevRandao"`
 	SuggestedFeeRecipient hexutil.Bytes  `json:"suggestedFeeRecipient"`
 	Slot                  types.Slot     `json:"slot"`
+	BlockHash             *common.Hash   `json:"blockHash"`
 }
 
 // MarshalJSON --
 func (p *BuilderPayloadAttributes) MarshalJSON() ([]byte, error) {
+	bHash := common.BytesToHash(p.BlockHash)
 	return json.Marshal(builderPayloadAttributesJSON{
 		Timestamp:             hexutil.Uint64(p.Timestamp),
 		PrevRandao:            p.PrevRandao,
 		SuggestedFeeRecipient: p.SuggestedFeeRecipient,
 		Slot:                  p.Slot,
+		BlockHash:             &bHash,
 	})
 }
 
@@ -292,6 +295,7 @@ func (p *BuilderPayloadAttributes) UnmarshalJSON(enc []byte) error {
 	p.PrevRandao = dec.PrevRandao
 	p.SuggestedFeeRecipient = dec.SuggestedFeeRecipient
 	p.Slot = dec.Slot
+	p.BlockHash = dec.BlockHash.Bytes()
 	return nil
 }
 
