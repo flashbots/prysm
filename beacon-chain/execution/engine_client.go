@@ -51,12 +51,6 @@ type ForkchoiceUpdatedResponse struct {
 	PayloadId *pb.PayloadIDBytes `json:"payloadId"`
 }
 
-// PayloadAttributesResponse is the response kind received by the
-// builder_payloadAttributes endpoint.
-type PayloadAttributesResponse struct {
-	Status *pb.PayloadStatus `json:"payloadStatus"`
-} 
-
 // ExecutionPayloadReconstructor defines a service that can reconstruct a full beacon
 // block with an execution payload from a signed beacon block and a connection
 // to an execution client's engine API.
@@ -81,7 +75,8 @@ type EngineCaller interface {
 		ctx context.Context, cfg *pb.TransitionConfiguration,
 	) error
 	ExecutionBlockByHash(ctx context.Context, hash common.Hash, withTxs bool) (*pb.ExecutionBlock, error)
-	GetTerminalBlockHash(ctx context.Context) ([]byte, bool, error)
+	GetTerminalBlockHash(ctx context.Context, transitionTime uint64) ([]byte, bool, error)
+	PayloadAttributes(ctx context.Context, attrs *pb.BuilderPayloadAttributes) ([]byte, error)
 }
 
 // NewPayload calls the engine_newPayloadV1 method via JSON-RPC.
@@ -312,15 +307,12 @@ func (s *Service) PayloadAttributes(ctx context.Context, attrs *pb.BuilderPayloa
 	d := time.Now().Add(payloadAndForkchoiceUpdatedTimeout)
 	ctx, cancel := context.WithDeadline(ctx, d)
 	defer cancel()
-	result := &PayloadAttributesResponse{}
+	var result interface{}
 	err := s.rpcClient.CallContext(ctx, result, PayloadAttributesMethod, attrs)
 	if err != nil {
 		return nil, handleRPCError(err)
 	}
-
-	if result.Status == nil {
-		return nil, ErrNilResponse
-	}
+	
 	return nil, nil
 }
 
