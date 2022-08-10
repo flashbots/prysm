@@ -684,10 +684,6 @@ func (s *Service) fillMissingPayloadIDRoutine(ctx context.Context, stateFeed *ev
 				if err := s.fillMissingBlockPayloadId(ctx, ti); err != nil {
 					log.WithError(err).Error("Could not fill missing payload ID")
 				}
-				notified := has && id == [8]byte{} 
-				if _, err := s.notifyBuildBlock(ctx, s.headState(ctx), s.CurrentSlot() + 1, s.headBlock().Block(), !notified); err != nil {
-					log.WithError(err).Error("Could not notify builder to build block")
-				}
 			case <-s.ctx.Done():
 				log.Debug("Context closed, exiting routine")
 				return
