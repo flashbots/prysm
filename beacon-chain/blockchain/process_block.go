@@ -665,8 +665,25 @@ func (s *Service) fillMissingPayloadIDRoutine(ctx context.Context, stateFeed *ev
 		for {
 			select {
 			case ti := <-ticker.C:
-				if err := s.fillMissingBlockPayloadId(ctx, ti); err != nil {
-					log.WithError(err).Error("Could not fill missing payload ID")
+				if !atHalfSlot(ti) {
+					continue
+				}
+				_, id, has := s.cfg.ProposerSlotIndexCache.GetProposerPayloadIDs(s.CurrentSlot()+1, s.headRoot())
+				// There exists proposer for next slot, but we haven't called fcu w/ payload attribute yet.
+				if has && id == [8]byte{} {
+					headBlock, err := s.headBlock()
+					if err != nil {
+						log.WithError(err).Error("Could not get head block")
+					} else {
+						if _, err := s.notifyForkchoiceUpdate(ctx, &notifyForkchoiceUpdateArg{
+							headState: s.headState(ctx),
+							headRoot:  s.headRoot(),
+							headBlock: headBlock.Block(),
+						}); err != nil {
+							log.WithError(err).Error("Could not prepare payload on empty ID")
+						}
+					}
+					missedPayloadIDFilledCount.Inc()
 				}
 			case <-s.ctx.Done():
 				log.Debug("Context closed, exiting routine")
