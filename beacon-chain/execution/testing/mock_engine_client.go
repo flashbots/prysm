@@ -20,6 +20,7 @@ import (
 
 // EngineClient --
 type EngineClient struct {
+	BuilderPayloadResp			[]byte
 	NewPayloadResp              []byte
 	PayloadIDBytes              *pb.PayloadIDBytes
 	ForkChoiceUpdatedResp       []byte
@@ -27,6 +28,7 @@ type EngineClient struct {
 	ExecutionPayloadCapella     *pb.ExecutionPayloadCapella
 	ExecutionBlock              *pb.ExecutionBlock
 	Err                         error
+	ErrBuilderPayload			error
 	ErrLatestExecBlock          error
 	ErrExecBlockByHash          error
 	ErrForkchoiceUpdated        error
@@ -39,6 +41,11 @@ type EngineClient struct {
 	TerminalBlockHashExists     bool
 	OverrideValidHash           [32]byte
 	BlockValue                  *big.Int
+}
+
+// PayloadAttributes --
+func (e *EngineClient) PayloadAttributes(_ context.Context, _ *pb.BuilderPayloadAttributes) ([]byte, error) {
+	return e.NewPayloadResp, e.ErrNewPayload
 }
 
 // NewPayload --

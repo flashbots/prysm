@@ -544,7 +544,6 @@ func (p *BuilderPayloadAttributes) MarshalJSON() ([]byte, error) {
 	return json.Marshal(builderPayloadAttributesJSON{
 		Timestamp:             hexutil.Uint64(p.Timestamp),
 		PrevRandao:            p.PrevRandao,
-		SuggestedFeeRecipient: p.SuggestedFeeRecipient,
 		Slot:                  p.Slot,
 		BlockHash:             &bHash,
 	})
@@ -559,7 +558,6 @@ func (p *BuilderPayloadAttributes) UnmarshalJSON(enc []byte) error {
 	*p = BuilderPayloadAttributes{}
 	p.Timestamp = uint64(dec.Timestamp)
 	p.PrevRandao = dec.PrevRandao
-	p.SuggestedFeeRecipient = dec.SuggestedFeeRecipient
 	p.Slot = dec.Slot
 	p.BlockHash = dec.BlockHash.Bytes()
 	return nil
