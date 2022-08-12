@@ -18,6 +18,7 @@ import (
 	"github.com/prysmaticlabs/prysm/consensus-types/interfaces"
 	"github.com/prysmaticlabs/prysm/encoding/bytesutil"
 	pb "github.com/prysmaticlabs/prysm/proto/engine/v1"
+	"github.com/prysmaticlabs/prysm/proto/builder"
 	"github.com/sirupsen/logrus"
 	"go.opencensus.io/trace"
 )
@@ -72,7 +73,7 @@ type EngineCaller interface {
 	) error
 	ExecutionBlockByHash(ctx context.Context, hash common.Hash, withTxs bool) (*pb.ExecutionBlock, error)
 	GetTerminalBlockHash(ctx context.Context, transitionTime uint64) ([]byte, bool, error)
-	PayloadAttributes(ctx context.Context, attrs *pb.BuilderPayloadAttributes) ([]byte, error)
+	PayloadAttributes(ctx context.Context, attrs *builder.BuilderPayloadAttributes) ([]byte, error)
 }
 
 // NewPayload calls the engine_newPayloadV1 method via JSON-RPC.
@@ -291,7 +292,7 @@ func (s *Service) GetTerminalBlockHash(ctx context.Context, transitionTime uint6
 }
 
 // PayloadAttributes sends payload attributes to a block builder to trigger building of a block
-func (s *Service) PayloadAttributes(ctx context.Context, attrs *pb.BuilderPayloadAttributes) ([]byte, error) {
+func (s *Service) PayloadAttributes(ctx context.Context, attrs *builder.BuilderPayloadAttributes) ([]byte, error) {
 	ctx, span := trace.StartSpan(ctx, "powchain.builder-api-client.PayloadAttributes")
 	defer span.End()
 	start := time.Now()

@@ -13,6 +13,7 @@ import (
 	"github.com/prysmaticlabs/prysm/consensus-types/interfaces"
 	"github.com/prysmaticlabs/prysm/encoding/bytesutil"
 	pb "github.com/prysmaticlabs/prysm/proto/engine/v1"
+	"github.com/prysmaticlabs/prysm/proto/builder"
 )
 
 // EngineClient --
@@ -38,7 +39,7 @@ type EngineClient struct {
 }
 
 // PayloadAttributes --
-func (e *EngineClient) PayloadAttributes(_ context.Context, _ *pb.BuilderPayloadAttributes) ([]byte, error) {
+func (e *EngineClient) PayloadAttributes(_ context.Context, _ *builder.BuilderPayloadAttributes) ([]byte, error) {
 	return e.NewPayloadResp, e.ErrNewPayload
 }
 
