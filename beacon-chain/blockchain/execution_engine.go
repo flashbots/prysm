@@ -287,13 +287,10 @@ func (s *Service) notifyBuildBlock(ctx context.Context, st state.BeaconState, sl
 		return false, err
 	}
 
-	feeRecipient := params.BeaconConfig().DefaultFeeRecipient
-
 	attr := &enginev1.BuilderPayloadAttributes{
 		Timestamp:             uint64(t.Unix()),
 		Slot:                  slot,
 		PrevRandao:            prevRando,
-		SuggestedFeeRecipient: feeRecipient.Bytes(),
 		BlockHash:             block.BlockHash(),
 	}
 
