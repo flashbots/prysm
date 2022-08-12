@@ -38,7 +38,7 @@ type EngineClient struct {
 }
 
 // PayloadAttributes --
-func (e *EngineClient) PayloadAttributes(_ context.Context, _ *pb.BuilderPayloadAttributes) ([]byte, error) {
+func (e *EngineClient) PayloadAttributes(_ context.Context, _ *builder.BuilderPayloadAttributes) ([]byte, error) {
 	return e.NewPayloadResp, e.ErrNewPayload
 }
 
