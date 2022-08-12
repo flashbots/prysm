@@ -833,8 +833,8 @@ type BuilderPayloadAttributes struct {
 
 	Timestamp  uint64                                                         `protobuf:"varint,1,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
 	PrevRandao []byte                                                         `protobuf:"bytes,2,opt,name=prev_randao,json=prevRandao,proto3" json:"prev_randao,omitempty" ssz-size:"32"`
-	Slot       github_com_prysmaticlabs_prysm_consensus_types_primitives.Slot `protobuf:"varint,4,opt,name=slot,proto3" json:"slot,omitempty" cast-type:"github.com/prysmaticlabs/prysm/consensus-types/primitives.Slot"`
-	BlockHash  []byte                                                         `protobuf:"bytes,5,opt,name=block_hash,json=blockHash,proto3" json:"block_hash,omitempty" ssz-size:"32"`
+	Slot       github_com_prysmaticlabs_prysm_consensus_types_primitives.Slot `protobuf:"varint,3,opt,name=slot,proto3" json:"slot,omitempty" cast-type:"github.com/prysmaticlabs/prysm/consensus-types/primitives.Slot"`
+	BlockHash  []byte                                                         `protobuf:"bytes,4,opt,name=block_hash,json=blockHash,proto3" json:"block_hash,omitempty" ssz-size:"32"`
 }
 
 func (x *BuilderPayloadAttributes) Reset() {
