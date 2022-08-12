@@ -287,7 +287,7 @@ func (s *Service) notifyBuildBlock(ctx context.Context, st state.BeaconState, sl
 		return false, err
 	}
 
-	attr := &enginev1.BuilderPayloadAttributes{
+	attr := &builder.BuilderPayloadAttributes{
 		Timestamp:             uint64(t.Unix()),
 		Slot:                  slot,
 		PrevRandao:            prevRando,
