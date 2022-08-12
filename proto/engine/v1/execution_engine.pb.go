@@ -833,11 +833,10 @@ type BuilderPayloadAttributes struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Timestamp             uint64                                                         `protobuf:"varint,1,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
-	PrevRandao            []byte                                                         `protobuf:"bytes,2,opt,name=prev_randao,json=prevRandao,proto3" json:"prev_randao,omitempty" ssz-size:"32"`
-	SuggestedFeeRecipient []byte                                                         `protobuf:"bytes,3,opt,name=suggested_fee_recipient,json=suggestedFeeRecipient,proto3" json:"suggested_fee_recipient,omitempty" ssz-size:"20"`
-	Slot                  github_com_prysmaticlabs_prysm_consensus_types_primitives.Slot `protobuf:"varint,4,opt,name=slot,proto3" json:"slot,omitempty" cast-type:"github.com/prysmaticlabs/prysm/consensus-types/primitives.Slot"`
-	BlockHash             []byte                                                         `protobuf:"bytes,5,opt,name=block_hash,json=blockHash,proto3" json:"block_hash,omitempty" ssz-size:"32"`
+	Timestamp  uint64                                                         `protobuf:"varint,1,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	PrevRandao []byte                                                         `protobuf:"bytes,2,opt,name=prev_randao,json=prevRandao,proto3" json:"prev_randao,omitempty" ssz-size:"32"`
+	Slot       github_com_prysmaticlabs_prysm_consensus_types_primitives.Slot `protobuf:"varint,4,opt,name=slot,proto3" json:"slot,omitempty" cast-type:"github.com/prysmaticlabs/prysm/consensus-types/primitives.Slot"`
+	BlockHash  []byte                                                         `protobuf:"bytes,5,opt,name=block_hash,json=blockHash,proto3" json:"block_hash,omitempty" ssz-size:"32"`
 }
 
 func (x *BuilderPayloadAttributes) Reset() {
@@ -882,13 +881,6 @@ func (x *BuilderPayloadAttributes) GetTimestamp() uint64 {
 func (x *BuilderPayloadAttributes) GetPrevRandao() []byte {
 	if x != nil {
 		return x.PrevRandao
-	}
-	return nil
-}
-
-func (x *BuilderPayloadAttributes) GetSuggestedFeeRecipient() []byte {
-	if x != nil {
-		return x.SuggestedFeeRecipient
 	}
 	return nil
 }
