@@ -11,7 +11,6 @@ import (
 	gethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/pkg/errors"
 	fieldparams "github.com/prysmaticlabs/prysm/v3/config/fieldparams"
-	types "github.com/prysmaticlabs/prysm/v3/consensus-types/primitives"
 	"github.com/prysmaticlabs/prysm/v3/encoding/bytesutil"
 )
 

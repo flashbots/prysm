@@ -18,8 +18,8 @@ func TestJsonMarshalUnmarshal(t *testing.T) {
 		jsonPayload := &builder.BuilderPayloadAttributes{
 			Timestamp:  1,
 			PrevRandao: random,
-			Slot: 1,
-			BlockHash: blockHash,
+			Slot:       1,
+			BlockHash:  blockHash,
 		}
 		enc, err := json.Marshal(jsonPayload)
 		require.NoError(t, err)
