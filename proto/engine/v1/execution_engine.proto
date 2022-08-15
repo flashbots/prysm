@@ -143,7 +143,7 @@ message PayloadStatus {
 		ACCEPTED                = 4;
 		INVALID_BLOCK_HASH      = 5;
 	}
-}																																							
+}
 
 message ForkchoiceState {
 	bytes head_block_hash      = 1 [(ethereum.eth.ext.ssz_size) = "32"];
