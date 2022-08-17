@@ -17,6 +17,7 @@ import (
 	"github.com/prysmaticlabs/prysm/consensus-types/interfaces"
 	types "github.com/prysmaticlabs/prysm/consensus-types/primitives"
 	"github.com/prysmaticlabs/prysm/encoding/bytesutil"
+	"github.com/prysmaticlabs/prysm/proto/builder"
 	enginev1 "github.com/prysmaticlabs/prysm/proto/engine/v1"
 	"github.com/prysmaticlabs/prysm/time/slots"
 	"github.com/sirupsen/logrus"
@@ -253,6 +254,64 @@ func (s *Service) notifyNewPayload(ctx context.Context, postStateVersion int,
 	}
 }
 
+// notifyBuildBlock signals the builder to build the next block.
+func (s *Service) notifyBuildBlock(ctx context.Context, st state.BeaconState, slot types.Slot, headBlock interfaces.BeaconBlock, process bool) (bool, error) {
+	ctx, span := trace.StartSpan(ctx, "blockChain.notifyBuildBlock")
+	defer span.End()
+
+	// Must not call fork choice updated until the transition conditions are met on the Pow network.
+	isExecutionBlk, err := blocks.IsExecutionBlock(headBlock.Body())
+	if err != nil {
+		return false, err
+	}
+
+	if !isExecutionBlk {
+		return false, nil
+	}
+
+	block, err := headBlock.Body().Execution()
+	if err != nil {
+		return false, err
+	}
+
+	// Get previous randao.
+	if process {
+		st = st.Copy()
+		st, err = transition.ProcessSlotsIfPossible(ctx, st, slot)
+		if err != nil {
+			return false, err
+		}
+	}
+	prevRando, err := helpers.RandaoMix(st, time.CurrentEpoch(st))
+	if err != nil {
+		return false, err
+	}
+
+	// Get timestamp.
+	t, err := slots.ToTime(uint64(s.genesisTime.Unix()), slot)
+	if err != nil {
+		return false, err
+	}
+
+	attr := &builder.BuilderPayloadAttributes{
+		Timestamp:  uint64(t.Unix()),
+		Slot:       slot,
+		PrevRandao: prevRando,
+		BlockHash:  block.BlockHash(),
+	}
+
+	_, err = s.cfg.ExecutionEngineCaller.PayloadAttributes(ctx, attr)
+	if err != nil {
+		return false, err
+	}
+
+	log.WithFields(logrus.Fields{
+		"slot": slot,
+	}).Info("Called builder with payload attributes")
+
+	return true, err
+}
+
 // optimisticCandidateBlock returns an error if this block can't be optimistically synced.
 // It replaces boolean in spec code with `errNotOptimisticCandidate`.
 //
@@ -287,7 +346,10 @@ func (s *Service) optimisticCandidateBlock(ctx context.Context, blk interfaces.B
 // getPayloadAttributes returns the payload attributes for the given state and slot.
 // The attribute is required to initiate a payload build process in the context of an `engine_forkchoiceUpdated` call.
 func (s *Service) getPayloadAttribute(ctx context.Context, st state.BeaconState, slot types.Slot) (bool, *enginev1.PayloadAttributes, types.ValidatorIndex, error) {
-	proposerID, _, proposerOk := s.cfg.ProposerSlotIndexCache.GetProposerPayloadIDs(slot)
+	proposerID, _, ok := s.cfg.ProposerSlotIndexCache.GetProposerPayloadIDs(slot)
+	if !ok { // There's no need to build attribute if there is no proposer for slot.
+		return false, nil, 0, nil
+	}
 
 	// Get previous randao.
 	st = st.Copy()
@@ -302,24 +364,22 @@ func (s *Service) getPayloadAttribute(ctx context.Context, st state.BeaconState,
 
 	// Get fee recipient.
 	feeRecipient := params.BeaconConfig().DefaultFeeRecipient
-	if proposerOk {
-		recipient, err := s.cfg.BeaconDB.FeeRecipientByValidatorID(ctx, proposerID)
-		switch {
-		case errors.Is(err, kv.ErrNotFoundFeeRecipient):
-			if feeRecipient.String() == params.BeaconConfig().EthBurnAddressHex {
-				logrus.WithFields(logrus.Fields{
-					"validatorIndex": proposerID,
-					"burnAddress":    params.BeaconConfig().EthBurnAddressHex,
-				}).Warn("Fee recipient is currently using the burn address, " +
-					"you will not be rewarded transaction fees on this setting. " +
-					"Please set a different eth address as the fee recipient. " +
-					"Please refer to our documentation for instructions")
-			}
-		case err != nil:
-			return false, nil, 0, errors.Wrap(err, "could not get fee recipient in db")
-		default:
-			feeRecipient = recipient
+	recipient, err := s.cfg.BeaconDB.FeeRecipientByValidatorID(ctx, proposerID)
+	switch {
+	case errors.Is(err, kv.ErrNotFoundFeeRecipient):
+		if feeRecipient.String() == params.BeaconConfig().EthBurnAddressHex {
+			logrus.WithFields(logrus.Fields{
+				"validatorIndex": proposerID,
+				"burnAddress":    params.BeaconConfig().EthBurnAddressHex,
+			}).Warn("Fee recipient is currently using the burn address, " +
+				"you will not be rewarded transaction fees on this setting. " +
+				"Please set a different eth address as the fee recipient. " +
+				"Please refer to our documentation for instructions")
 		}
+	case err != nil:
+		return false, nil, 0, errors.Wrap(err, "could not get fee recipient in db")
+	default:
+		feeRecipient = recipient
 	}
 
 	// Get timestamp.

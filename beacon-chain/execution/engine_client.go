@@ -17,12 +17,15 @@ import (
 	"github.com/prysmaticlabs/prysm/consensus-types/blocks"
 	"github.com/prysmaticlabs/prysm/consensus-types/interfaces"
 	"github.com/prysmaticlabs/prysm/encoding/bytesutil"
+	"github.com/prysmaticlabs/prysm/proto/builder"
 	pb "github.com/prysmaticlabs/prysm/proto/engine/v1"
 	"github.com/sirupsen/logrus"
 	"go.opencensus.io/trace"
 )
 
 const (
+	// PayloadAttributes request string for JSON-RPC
+	PayloadAttributesMethod = "builder_payloadAttributes"
 	// NewPayloadMethod v1 request string for JSON-RPC.
 	NewPayloadMethod = "engine_newPayloadV1"
 	// ForkchoiceUpdatedMethod v1 request string for JSON-RPC.
@@ -70,6 +73,7 @@ type EngineCaller interface {
 	) error
 	ExecutionBlockByHash(ctx context.Context, hash common.Hash, withTxs bool) (*pb.ExecutionBlock, error)
 	GetTerminalBlockHash(ctx context.Context, transitionTime uint64) ([]byte, bool, error)
+	PayloadAttributes(ctx context.Context, attrs *builder.BuilderPayloadAttributes) ([]byte, error)
 }
 
 // NewPayload calls the engine_newPayloadV1 method via JSON-RPC.
@@ -285,6 +289,26 @@ func (s *Service) GetTerminalBlockHash(ctx context.Context, transitionTime uint6
 		}
 		blk = parentBlk
 	}
+}
+
+// PayloadAttributes sends payload attributes to a block builder to trigger building of a block
+func (s *Service) PayloadAttributes(ctx context.Context, attrs *builder.BuilderPayloadAttributes) ([]byte, error) {
+	ctx, span := trace.StartSpan(ctx, "powchain.builder-api-client.PayloadAttributes")
+	defer span.End()
+	start := time.Now()
+	defer func() {
+		payloadAttributesLatency.Observe(float64(time.Since(start).Milliseconds()))
+	}()
+	d := time.Now().Add(payloadAndForkchoiceUpdatedTimeout)
+	ctx, cancel := context.WithDeadline(ctx, d)
+	defer cancel()
+	var result interface{}
+	err := s.rpcClient.CallContext(ctx, result, PayloadAttributesMethod, attrs)
+	if err != nil {
+		return nil, handleRPCError(err)
+	}
+
+	return nil, nil
 }
 
 // LatestExecutionBlock fetches the latest execution engine block by calling
