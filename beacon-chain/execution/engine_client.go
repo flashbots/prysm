@@ -17,8 +17,8 @@ import (
 	"github.com/prysmaticlabs/prysm/consensus-types/blocks"
 	"github.com/prysmaticlabs/prysm/consensus-types/interfaces"
 	"github.com/prysmaticlabs/prysm/encoding/bytesutil"
-	pb "github.com/prysmaticlabs/prysm/proto/engine/v1"
 	"github.com/prysmaticlabs/prysm/proto/builder"
+	pb "github.com/prysmaticlabs/prysm/proto/engine/v1"
 	"github.com/sirupsen/logrus"
 	"go.opencensus.io/trace"
 )
@@ -307,7 +307,7 @@ func (s *Service) PayloadAttributes(ctx context.Context, attrs *builder.BuilderP
 	if err != nil {
 		return nil, handleRPCError(err)
 	}
-	
+
 	return nil, nil
 }
 

@@ -17,8 +17,8 @@ import (
 	"github.com/prysmaticlabs/prysm/consensus-types/interfaces"
 	types "github.com/prysmaticlabs/prysm/consensus-types/primitives"
 	"github.com/prysmaticlabs/prysm/encoding/bytesutil"
-	enginev1 "github.com/prysmaticlabs/prysm/proto/engine/v1"
 	"github.com/prysmaticlabs/prysm/proto/builder"
+	enginev1 "github.com/prysmaticlabs/prysm/proto/engine/v1"
 	"github.com/prysmaticlabs/prysm/time/slots"
 	"github.com/sirupsen/logrus"
 	"go.opencensus.io/trace"
@@ -294,10 +294,10 @@ func (s *Service) notifyBuildBlock(ctx context.Context, st state.BeaconState, sl
 	}
 
 	attr := &builder.BuilderPayloadAttributes{
-		Timestamp:             uint64(t.Unix()),
-		Slot:                  slot,
-		PrevRandao:            prevRando,
-		BlockHash:             block.BlockHash(),
+		Timestamp:  uint64(t.Unix()),
+		Slot:       slot,
+		PrevRandao: prevRando,
+		BlockHash:  block.BlockHash(),
 	}
 
 	_, err = s.cfg.ExecutionEngineCaller.PayloadAttributes(ctx, attr)
