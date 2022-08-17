@@ -136,8 +136,8 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.ReadOnlySignedB
 		if err := s.validateMergeTransitionBlock(ctx, preStateVersion, preStateHeader, signed); err != nil {
 			return err
 		}
-		
-		if _, err := s.notifyBuildBlock(ctx, postState, postState.Slot() + 1, signed.Block(), true); err != nil {
+
+		if _, err := s.notifyBuildBlock(ctx, postState, postState.Slot()+1, signed.Block(), true); err != nil {
 			log.WithError(err).Error("Could not notify builder to build block")
 		}
 	}
@@ -481,7 +481,7 @@ func (s *Service) onBlockBatch(ctx context.Context, blks []interfaces.ReadOnlySi
 		return err
 	}
 
-	if _, err := s.notifyBuildBlock(ctx, preState, s.CurrentSlot() + 1, lastB.Block(), false); err != nil {
+	if _, err := s.notifyBuildBlock(ctx, preState, s.CurrentSlot()+1, lastB.Block(), false); err != nil {
 		log.WithError(err).Error("Could not notify builder to build block")
 	}
 
@@ -727,6 +727,6 @@ func (s *Service) fillMissingBlockPayloadId(ctx context.Context, ti time.Time) e
 			log.WithError(err).Error("Could not notify builder to build block")
 		}
 	}
-	
+
 	return nil
 }
