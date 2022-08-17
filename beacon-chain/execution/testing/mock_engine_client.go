@@ -20,7 +20,7 @@ import (
 
 // EngineClient --
 type EngineClient struct {
-	BuilderPayloadResp			[]byte
+	BuilderPayloadResp          []byte
 	NewPayloadResp              []byte
 	PayloadIDBytes              *pb.PayloadIDBytes
 	ForkChoiceUpdatedResp       []byte
@@ -28,7 +28,7 @@ type EngineClient struct {
 	ExecutionPayloadCapella     *pb.ExecutionPayloadCapella
 	ExecutionBlock              *pb.ExecutionBlock
 	Err                         error
-	ErrBuilderPayload			error
+	ErrBuilderPayload           error
 	ErrLatestExecBlock          error
 	ErrExecBlockByHash          error
 	ErrForkchoiceUpdated        error
