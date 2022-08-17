@@ -17,14 +17,14 @@ import (
 
 // EngineClient --
 type EngineClient struct {
-	BuilderPayloadResp			[]byte
+	BuilderPayloadResp          []byte
 	NewPayloadResp              []byte
 	PayloadIDBytes              *pb.PayloadIDBytes
 	ForkChoiceUpdatedResp       []byte
 	ExecutionPayload            *pb.ExecutionPayload
 	ExecutionBlock              *pb.ExecutionBlock
 	Err                         error
-	ErrBuilderPayload			error
+	ErrBuilderPayload           error
 	ErrLatestExecBlock          error
 	ErrExecBlockByHash          error
 	ErrForkchoiceUpdated        error

@@ -288,10 +288,10 @@ func (s *Service) notifyBuildBlock(ctx context.Context, st state.BeaconState, sl
 	}
 
 	attr := &builder.BuilderPayloadAttributes{
-		Timestamp:             uint64(t.Unix()),
-		Slot:                  slot,
-		PrevRandao:            prevRando,
-		BlockHash:             block.BlockHash(),
+		Timestamp:  uint64(t.Unix()),
+		Slot:       slot,
+		PrevRandao: prevRando,
+		BlockHash:  block.BlockHash(),
 	}
 
 	_, err = s.cfg.ExecutionEngineCaller.PayloadAttributes(ctx, attr)
