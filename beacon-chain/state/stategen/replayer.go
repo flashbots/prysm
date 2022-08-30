@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/prysmaticlabs/prysm/beacon-chain/state"
-	"github.com/prysmaticlabs/prysm/consensus-types/interfaces"
-	types "github.com/prysmaticlabs/prysm/consensus-types/primitives"
+	"github.com/prysmaticlabs/prysm/v3/beacon-chain/state"
+	"github.com/prysmaticlabs/prysm/v3/consensus-types/interfaces"
+	types "github.com/prysmaticlabs/prysm/v3/consensus-types/primitives"
 	"github.com/sirupsen/logrus"
 	"go.opencensus.io/trace"
 )
@@ -63,7 +63,6 @@ type chainer interface {
 }
 
 type stateReplayer struct {
-	s       state.BeaconState
 	target  types.Slot
 	method  retrievalMethod
 	chainer chainer

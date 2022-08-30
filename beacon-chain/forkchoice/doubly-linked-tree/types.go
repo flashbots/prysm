@@ -3,9 +3,9 @@ package doublylinkedtree
 import (
 	"sync"
 
-	forkchoicetypes "github.com/prysmaticlabs/prysm/beacon-chain/forkchoice/types"
-	fieldparams "github.com/prysmaticlabs/prysm/config/fieldparams"
-	types "github.com/prysmaticlabs/prysm/consensus-types/primitives"
+	forkchoicetypes "github.com/prysmaticlabs/prysm/v3/beacon-chain/forkchoice/types"
+	fieldparams "github.com/prysmaticlabs/prysm/v3/config/fieldparams"
+	types "github.com/prysmaticlabs/prysm/v3/consensus-types/primitives"
 )
 
 // ForkChoice defines the overall fork choice store which includes all block nodes, validator's latest votes and balances.
@@ -38,7 +38,9 @@ type Store struct {
 	proposerBoostLock             sync.RWMutex
 	checkpointsLock               sync.RWMutex
 	genesisTime                   uint64
-	allTipsAreInvalid             bool // tracks if all tips are not viable for head
+	highestReceivedSlot           types.Slot                            // The highest received slot in the chain.
+	receivedBlocksLastEpoch       [fieldparams.SlotsPerEpoch]types.Slot // Using `highestReceivedSlot`. The slot of blocks received in the last epoch.
+	allTipsAreInvalid             bool                                  // tracks if all tips are not viable for head
 }
 
 // Node defines the individual block which includes its block parent, ancestor and how much weight accounted for it.
@@ -57,6 +59,7 @@ type Node struct {
 	weight                   uint64                       // weight of this node: the total balance including children
 	bestDescendant           *Node                        // bestDescendant node of this node.
 	optimistic               bool                         // whether the block has been fully validated or not
+	timestamp                uint64                       // The timestamp when the node was inserted.
 }
 
 // Vote defines an individual validator's vote.

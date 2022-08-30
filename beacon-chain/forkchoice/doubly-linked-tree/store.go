@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	fieldparams "github.com/prysmaticlabs/prysm/config/fieldparams"
-	"github.com/prysmaticlabs/prysm/config/params"
-	types "github.com/prysmaticlabs/prysm/consensus-types/primitives"
-	"github.com/prysmaticlabs/prysm/time/slots"
+	fieldparams "github.com/prysmaticlabs/prysm/v3/config/fieldparams"
+	"github.com/prysmaticlabs/prysm/v3/config/params"
+	types "github.com/prysmaticlabs/prysm/v3/consensus-types/primitives"
+	"github.com/prysmaticlabs/prysm/v3/time/slots"
 	"go.opencensus.io/trace"
 )
 
@@ -72,6 +72,10 @@ func (s *Store) head(ctx context.Context) ([32]byte, error) {
 	s.checkpointsLock.RLock()
 	defer s.checkpointsLock.RUnlock()
 
+	if err := ctx.Err(); err != nil {
+		return [32]byte{}, err
+	}
+
 	// JustifiedRoot has to be known
 	justifiedNode, ok := s.nodeByRoot[s.justifiedCheckpoint.Root]
 	if !ok || justifiedNode == nil {
@@ -91,8 +95,8 @@ func (s *Store) head(ctx context.Context) ([32]byte, error) {
 	if bestDescendant == nil {
 		bestDescendant = justifiedNode
 	}
-
-	if !bestDescendant.viableForHead(s.justifiedCheckpoint.Epoch, s.finalizedCheckpoint.Epoch) {
+	currentEpoch := slots.EpochsSinceGenesis(time.Unix(int64(s.genesisTime), 0))
+	if !bestDescendant.viableForHead(s.justifiedCheckpoint.Epoch, s.finalizedCheckpoint.Epoch, currentEpoch) {
 		s.allTipsAreInvalid = true
 		return [32]byte{}, fmt.Errorf("head at slot %d with weight %d is not eligible, finalizedEpoch, justified Epoch %d, %d != %d, %d",
 			bestDescendant.slot, bestDescendant.weight/10e9, bestDescendant.finalizedEpoch, bestDescendant.justifiedEpoch, s.finalizedCheckpoint.Epoch, s.justifiedCheckpoint.Epoch)
@@ -138,6 +142,7 @@ func (s *Store) insert(ctx context.Context,
 		unrealizedFinalizedEpoch: finalizedEpoch,
 		optimistic:               true,
 		payloadHash:              payloadHash,
+		timestamp:                uint64(time.Now().Unix()),
 	}
 
 	s.nodeByPayload[payloadHash] = n
@@ -166,14 +171,26 @@ func (s *Store) insert(ctx context.Context,
 		}
 
 		// Update best descendants
-		if err := s.treeRootNode.updateBestDescendant(ctx,
-			s.justifiedCheckpoint.Epoch, s.finalizedCheckpoint.Epoch); err != nil {
+		s.checkpointsLock.RLock()
+		jEpoch := s.justifiedCheckpoint.Epoch
+		fEpoch := s.finalizedCheckpoint.Epoch
+		s.checkpointsLock.RUnlock()
+		if err := s.treeRootNode.updateBestDescendant(ctx, jEpoch, fEpoch, slots.ToEpoch(currentSlot)); err != nil {
 			return n, err
 		}
 	}
 	// Update metrics.
 	processedBlockCount.Inc()
 	nodeCount.Set(float64(len(s.nodeByRoot)))
+
+	// Only update received block slot if it's within epoch from current time.
+	if slot+params.BeaconConfig().SlotsPerEpoch > slots.CurrentSlot(s.genesisTime) {
+		s.receivedBlocksLastEpoch[slot%params.BeaconConfig().SlotsPerEpoch] = slot
+	}
+	// Update highest slot tracking.
+	if slot > s.highestReceivedSlot {
+		s.highestReceivedSlot = slot
+	}
 
 	return n, nil
 }
@@ -250,4 +267,33 @@ func (s *Store) tips() ([][32]byte, []types.Slot) {
 		}
 	}
 	return roots, slots
+}
+
+// HighestReceivedBlockSlot returns the highest slot received by the forkchoice
+func (f *ForkChoice) HighestReceivedBlockSlot() types.Slot {
+	f.store.nodesLock.RLock()
+	defer f.store.nodesLock.RUnlock()
+	return f.store.highestReceivedSlot
+}
+
+// ReceivedBlocksLastEpoch returns the number of blocks received in the last epoch
+func (f *ForkChoice) ReceivedBlocksLastEpoch() (uint64, error) {
+	f.store.nodesLock.RLock()
+	defer f.store.nodesLock.RUnlock()
+	count := uint64(0)
+	lowerBound := slots.CurrentSlot(f.store.genesisTime)
+	var err error
+	if lowerBound > fieldparams.SlotsPerEpoch {
+		lowerBound, err = lowerBound.SafeSub(fieldparams.SlotsPerEpoch)
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	for _, s := range f.store.receivedBlocksLastEpoch {
+		if s != 0 && lowerBound <= s {
+			count++
+		}
+	}
+	return count, nil
 }

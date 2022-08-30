@@ -5,15 +5,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/prysmaticlabs/prysm/beacon-chain/forkchoice"
-	forkchoicetypes "github.com/prysmaticlabs/prysm/beacon-chain/forkchoice/types"
-	"github.com/prysmaticlabs/prysm/config/params"
-	"github.com/prysmaticlabs/prysm/consensus-types/blocks"
-	types "github.com/prysmaticlabs/prysm/consensus-types/primitives"
-	ethpb "github.com/prysmaticlabs/prysm/proto/prysm/v1alpha1"
-	"github.com/prysmaticlabs/prysm/testing/assert"
-	"github.com/prysmaticlabs/prysm/testing/require"
-	"github.com/prysmaticlabs/prysm/testing/util"
+	"github.com/prysmaticlabs/prysm/v3/beacon-chain/forkchoice"
+	forkchoicetypes "github.com/prysmaticlabs/prysm/v3/beacon-chain/forkchoice/types"
+	"github.com/prysmaticlabs/prysm/v3/config/params"
+	"github.com/prysmaticlabs/prysm/v3/consensus-types/blocks"
+	types "github.com/prysmaticlabs/prysm/v3/consensus-types/primitives"
+	ethpb "github.com/prysmaticlabs/prysm/v3/proto/prysm/v1alpha1"
+	"github.com/prysmaticlabs/prysm/v3/testing/assert"
+	"github.com/prysmaticlabs/prysm/v3/testing/require"
+	"github.com/prysmaticlabs/prysm/v3/testing/util"
 )
 
 func TestStore_PruneThreshold(t *testing.T) {
@@ -511,9 +511,9 @@ func TestStore_Prune_NoDanglingBranch(t *testing.T) {
 			indexToHash(uint64(2)): true,
 		},
 		payloadIndices: map[[32]byte]uint64{
-			[32]byte{'A'}: 0,
-			[32]byte{'B'}: 1,
-			[32]byte{'C'}: 2,
+			{'A'}: 0,
+			{'B'}: 1,
+			{'C'}: 2,
 		},
 	}
 	fc := &forkchoicetypes.Checkpoint{Epoch: 1, Root: indexToHash(1)}
@@ -677,73 +677,85 @@ func TestStore_CommonAncestor(t *testing.T) {
 		r1       [32]byte
 		r2       [32]byte
 		wantRoot [32]byte
+		wantSlot types.Slot
 	}{
 		{
 			name:     "Common ancestor between c and b is a",
 			r1:       [32]byte{'c'},
 			r2:       [32]byte{'b'},
 			wantRoot: [32]byte{'a'},
+			wantSlot: 0,
 		},
 		{
 			name:     "Common ancestor between c and d is a",
 			r1:       [32]byte{'c'},
 			r2:       [32]byte{'d'},
 			wantRoot: [32]byte{'a'},
+			wantSlot: 0,
 		},
 		{
 			name:     "Common ancestor between c and e is a",
 			r1:       [32]byte{'c'},
 			r2:       [32]byte{'e'},
 			wantRoot: [32]byte{'a'},
+			wantSlot: 0,
 		},
 		{
 			name:     "Common ancestor between g and f is c",
 			r1:       [32]byte{'g'},
 			r2:       [32]byte{'f'},
 			wantRoot: [32]byte{'c'},
+			wantSlot: 2,
 		},
 		{
 			name:     "Common ancestor between f and h is c",
 			r1:       [32]byte{'f'},
 			r2:       [32]byte{'h'},
 			wantRoot: [32]byte{'c'},
+			wantSlot: 2,
 		},
 		{
 			name:     "Common ancestor between g and h is c",
 			r1:       [32]byte{'g'},
 			r2:       [32]byte{'h'},
 			wantRoot: [32]byte{'c'},
+			wantSlot: 2,
 		},
 		{
 			name:     "Common ancestor between b and h is a",
 			r1:       [32]byte{'b'},
 			r2:       [32]byte{'h'},
 			wantRoot: [32]byte{'a'},
+			wantSlot: 0,
 		},
 		{
 			name:     "Common ancestor between e and h is a",
 			r1:       [32]byte{'e'},
 			r2:       [32]byte{'h'},
 			wantRoot: [32]byte{'a'},
+			wantSlot: 0,
 		},
 		{
 			name:     "Common ancestor between i and f is c",
 			r1:       [32]byte{'i'},
 			r2:       [32]byte{'f'},
 			wantRoot: [32]byte{'c'},
+			wantSlot: 2,
 		},
 		{
 			name:     "Common ancestor between e and h is a",
 			r1:       [32]byte{'j'},
 			r2:       [32]byte{'g'},
 			wantRoot: [32]byte{'c'},
+			wantSlot: 2,
 		},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			gotRoot, err := f.CommonAncestorRoot(ctx, tc.r1, tc.r2)
+			gotRoot, gotSlot, err := f.CommonAncestor(ctx, tc.r1, tc.r2)
 			require.NoError(t, err)
 			require.Equal(t, tc.wantRoot, gotRoot)
+			require.Equal(t, tc.wantSlot, gotSlot)
 		})
 	}
 
@@ -766,52 +778,59 @@ func TestStore_CommonAncestor(t *testing.T) {
 		r1       [32]byte
 		r2       [32]byte
 		wantRoot [32]byte
+		wantSlot types.Slot
 	}{
 		{
 			name:     "Common ancestor between a and b is a",
 			r1:       [32]byte{'a'},
 			r2:       [32]byte{'b'},
 			wantRoot: [32]byte{'a'},
+			wantSlot: 0,
 		},
 		{
 			name:     "Common ancestor between b and d is b",
 			r1:       [32]byte{'d'},
 			r2:       [32]byte{'b'},
 			wantRoot: [32]byte{'b'},
+			wantSlot: 1,
 		},
 		{
 			name:     "Common ancestor between d and a is a",
 			r1:       [32]byte{'d'},
 			r2:       [32]byte{'a'},
 			wantRoot: [32]byte{'a'},
+			wantSlot: 0,
 		},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			gotRoot, err := f.CommonAncestorRoot(ctx, tc.r1, tc.r2)
+			gotRoot, gotSlot, err := f.CommonAncestor(ctx, tc.r1, tc.r2)
 			require.NoError(t, err)
 			require.Equal(t, tc.wantRoot, gotRoot)
+			require.Equal(t, tc.wantSlot, gotSlot)
 		})
 	}
 
 	// Equal inputs should return the same root.
-	r, err := f.CommonAncestorRoot(ctx, [32]byte{'b'}, [32]byte{'b'})
+	r, s, err := f.CommonAncestor(ctx, [32]byte{'b'}, [32]byte{'b'})
 	require.NoError(t, err)
 	require.Equal(t, [32]byte{'b'}, r)
+	require.Equal(t, types.Slot(1), s)
 	// Requesting finalized root (last node) should return the same root.
-	r, err = f.CommonAncestorRoot(ctx, [32]byte{'a'}, [32]byte{'a'})
+	r, s, err = f.CommonAncestor(ctx, [32]byte{'a'}, [32]byte{'a'})
 	require.NoError(t, err)
 	require.Equal(t, [32]byte{'a'}, r)
+	require.Equal(t, types.Slot(0), s)
 	// Requesting unknown root
-	_, err = f.CommonAncestorRoot(ctx, [32]byte{'a'}, [32]byte{'z'})
+	_, _, err = f.CommonAncestor(ctx, [32]byte{'a'}, [32]byte{'z'})
 	require.ErrorIs(t, err, forkchoice.ErrUnknownCommonAncestor)
-	_, err = f.CommonAncestorRoot(ctx, [32]byte{'z'}, [32]byte{'a'})
+	_, _, err = f.CommonAncestor(ctx, [32]byte{'z'}, [32]byte{'a'})
 	require.ErrorIs(t, err, forkchoice.ErrUnknownCommonAncestor)
 	state, blkRoot, err = prepareForkchoiceState(ctx, 100, [32]byte{'y'}, [32]byte{'z'}, [32]byte{}, 1, 1)
 	require.NoError(t, err)
 	require.NoError(t, f.InsertNode(ctx, state, blkRoot))
 	// broken link
-	_, err = f.CommonAncestorRoot(ctx, [32]byte{'y'}, [32]byte{'a'})
+	_, _, err = f.CommonAncestor(ctx, [32]byte{'y'}, [32]byte{'a'})
 	require.ErrorIs(t, err, forkchoice.ErrUnknownCommonAncestor)
 }
 
@@ -999,11 +1018,11 @@ func TestStore_UpdateCanonicalNodes_RemoveOldCanonical(t *testing.T) {
 	f := &ForkChoice{store: &Store{}}
 	f.store.canonicalNodes = map[[32]byte]bool{}
 	f.store.nodesIndices = map[[32]byte]uint64{
-		[32]byte{'a'}: 0,
-		[32]byte{'b'}: 1,
-		[32]byte{'c'}: 2,
-		[32]byte{'d'}: 3,
-		[32]byte{'e'}: 4,
+		{'a'}: 0,
+		{'b'}: 1,
+		{'c'}: 2,
+		{'d'}: 3,
+		{'e'}: 4,
 	}
 
 	f.store.nodes = []*Node{
@@ -1272,4 +1291,137 @@ func TestForkChoice_UpdateCheckpoints(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestForkChoice_HighestReceivedBlockSlot(t *testing.T) {
+	f := setup(1, 1)
+	s := f.store
+	_, err := s.insert(context.Background(), 100, [32]byte{'A'}, [32]byte{'a'}, params.BeaconConfig().ZeroHash, 1, 1)
+	require.NoError(t, err)
+	require.Equal(t, types.Slot(100), s.highestReceivedSlot)
+	require.Equal(t, types.Slot(100), f.HighestReceivedBlockSlot())
+	_, err = s.insert(context.Background(), 1000, [32]byte{'B'}, [32]byte{'A'}, params.BeaconConfig().ZeroHash, 1, 1)
+	require.NoError(t, err)
+	require.Equal(t, types.Slot(1000), s.highestReceivedSlot)
+	require.Equal(t, types.Slot(1000), f.HighestReceivedBlockSlot())
+	_, err = s.insert(context.Background(), 500, [32]byte{'C'}, [32]byte{'A'}, params.BeaconConfig().ZeroHash, 1, 1)
+	require.NoError(t, err)
+	require.Equal(t, types.Slot(1000), s.highestReceivedSlot)
+	require.Equal(t, types.Slot(1000), f.HighestReceivedBlockSlot())
+}
+
+func TestForkChoice_ReceivedBlocksLastEpoch(t *testing.T) {
+	f := setup(1, 1)
+	s := f.store
+	b := [32]byte{}
+
+	// Make sure it doesn't underflow
+	s.genesisTime = uint64(time.Now().Add(time.Duration(-1*int64(params.BeaconConfig().SecondsPerSlot)) * time.Second).Unix())
+	_, err := s.insert(context.Background(), 1, [32]byte{'a'}, b, b, 1, 1)
+	require.NoError(t, err)
+	count, err := f.ReceivedBlocksLastEpoch()
+	require.NoError(t, err)
+	require.Equal(t, uint64(1), count)
+	require.Equal(t, types.Slot(1), f.HighestReceivedBlockSlot())
+
+	// 64
+	// Received block last epoch is 1
+	_, err = s.insert(context.Background(), 64, [32]byte{'A'}, b, b, 1, 1)
+	require.NoError(t, err)
+	s.genesisTime = uint64(time.Now().Add(time.Duration(-64*int64(params.BeaconConfig().SecondsPerSlot)) * time.Second).Unix())
+	count, err = f.ReceivedBlocksLastEpoch()
+	require.NoError(t, err)
+	require.Equal(t, uint64(1), count)
+	require.Equal(t, types.Slot(64), f.HighestReceivedBlockSlot())
+
+	// 64 65
+	// Received block last epoch is 2
+	_, err = s.insert(context.Background(), 65, [32]byte{'B'}, b, b, 1, 1)
+	require.NoError(t, err)
+	s.genesisTime = uint64(time.Now().Add(time.Duration(-65*int64(params.BeaconConfig().SecondsPerSlot)) * time.Second).Unix())
+	count, err = f.ReceivedBlocksLastEpoch()
+	require.NoError(t, err)
+	require.Equal(t, uint64(2), count)
+	require.Equal(t, types.Slot(65), f.HighestReceivedBlockSlot())
+
+	// 64 65 66
+	// Received block last epoch is 3
+	_, err = s.insert(context.Background(), 66, [32]byte{'C'}, b, b, 1, 1)
+	require.NoError(t, err)
+	s.genesisTime = uint64(time.Now().Add(time.Duration(-66*int64(params.BeaconConfig().SecondsPerSlot)) * time.Second).Unix())
+	count, err = f.ReceivedBlocksLastEpoch()
+	require.NoError(t, err)
+	require.Equal(t, uint64(3), count)
+	require.Equal(t, types.Slot(66), f.HighestReceivedBlockSlot())
+
+	// 64 65 66
+	//       98
+	// Received block last epoch is 1
+	_, err = s.insert(context.Background(), 98, [32]byte{'D'}, b, b, 1, 1)
+	require.NoError(t, err)
+	s.genesisTime = uint64(time.Now().Add(time.Duration(-98*int64(params.BeaconConfig().SecondsPerSlot)) * time.Second).Unix())
+	count, err = f.ReceivedBlocksLastEpoch()
+	require.NoError(t, err)
+	require.Equal(t, uint64(1), count)
+	require.Equal(t, types.Slot(98), f.HighestReceivedBlockSlot())
+
+	// 64 65 66
+	//       98
+	//              132
+	// Received block last epoch is 1
+	_, err = s.insert(context.Background(), 132, [32]byte{'E'}, b, b, 1, 1)
+	require.NoError(t, err)
+	s.genesisTime = uint64(time.Now().Add(time.Duration(-132*int64(params.BeaconConfig().SecondsPerSlot)) * time.Second).Unix())
+	count, err = f.ReceivedBlocksLastEpoch()
+	require.NoError(t, err)
+	require.Equal(t, uint64(1), count)
+	require.Equal(t, types.Slot(132), f.HighestReceivedBlockSlot())
+
+	// 64 65 66
+	//       98
+	//              132
+	//       99
+	// Received block last epoch is still 1. 99 is outside the window
+	_, err = s.insert(context.Background(), 99, [32]byte{'F'}, b, b, 1, 1)
+	require.NoError(t, err)
+	s.genesisTime = uint64(time.Now().Add(time.Duration(-132*int64(params.BeaconConfig().SecondsPerSlot)) * time.Second).Unix())
+	count, err = f.ReceivedBlocksLastEpoch()
+	require.NoError(t, err)
+	require.Equal(t, uint64(1), count)
+	require.Equal(t, types.Slot(132), f.HighestReceivedBlockSlot())
+
+	// 64 65 66
+	//       98
+	//              132
+	//       99 100
+	// Received block last epoch is still 1. 100 is at the same position as 132
+	_, err = s.insert(context.Background(), 100, [32]byte{'G'}, b, b, 1, 1)
+	require.NoError(t, err)
+	s.genesisTime = uint64(time.Now().Add(time.Duration(-132*int64(params.BeaconConfig().SecondsPerSlot)) * time.Second).Unix())
+	count, err = f.ReceivedBlocksLastEpoch()
+	require.NoError(t, err)
+	require.Equal(t, uint64(1), count)
+	require.Equal(t, types.Slot(132), f.HighestReceivedBlockSlot())
+
+	// 64 65 66
+	//       98
+	//              132
+	//       99 100 101
+	// Received block last epoch is 2. 101 is within the window
+	_, err = s.insert(context.Background(), 101, [32]byte{'H'}, b, b, 1, 1)
+	require.NoError(t, err)
+	s.genesisTime = uint64(time.Now().Add(time.Duration(-132*int64(params.BeaconConfig().SecondsPerSlot)) * time.Second).Unix())
+	count, err = f.ReceivedBlocksLastEpoch()
+	require.NoError(t, err)
+	require.Equal(t, uint64(2), count)
+	require.Equal(t, types.Slot(132), f.HighestReceivedBlockSlot())
+
+	s.genesisTime = uint64(time.Now().Add(time.Duration(-134*int64(params.BeaconConfig().SecondsPerSlot)) * time.Second).Unix())
+	count, err = f.ReceivedBlocksLastEpoch()
+	require.NoError(t, err)
+	require.Equal(t, uint64(1), count)
+	s.genesisTime = uint64(time.Now().Add(time.Duration(-165*int64(params.BeaconConfig().SecondsPerSlot)) * time.Second).Unix())
+	count, err = f.ReceivedBlocksLastEpoch()
+	require.NoError(t, err)
+	require.Equal(t, uint64(0), count)
 }

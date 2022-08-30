@@ -13,19 +13,19 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	gethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/pkg/errors"
-	"github.com/prysmaticlabs/prysm/beacon-chain/core/feed"
-	statefeed "github.com/prysmaticlabs/prysm/beacon-chain/core/feed/state"
-	"github.com/prysmaticlabs/prysm/beacon-chain/core/helpers"
-	coreState "github.com/prysmaticlabs/prysm/beacon-chain/core/transition"
-	statenative "github.com/prysmaticlabs/prysm/beacon-chain/state/state-native"
-	v1 "github.com/prysmaticlabs/prysm/beacon-chain/state/v1"
-	"github.com/prysmaticlabs/prysm/config/features"
-	"github.com/prysmaticlabs/prysm/config/params"
-	contracts "github.com/prysmaticlabs/prysm/contracts/deposit"
-	"github.com/prysmaticlabs/prysm/crypto/hash"
-	"github.com/prysmaticlabs/prysm/encoding/bytesutil"
-	ethpb "github.com/prysmaticlabs/prysm/proto/prysm/v1alpha1"
-	"github.com/prysmaticlabs/prysm/time/slots"
+	"github.com/prysmaticlabs/prysm/v3/beacon-chain/core/feed"
+	statefeed "github.com/prysmaticlabs/prysm/v3/beacon-chain/core/feed/state"
+	"github.com/prysmaticlabs/prysm/v3/beacon-chain/core/helpers"
+	coreState "github.com/prysmaticlabs/prysm/v3/beacon-chain/core/transition"
+	statenative "github.com/prysmaticlabs/prysm/v3/beacon-chain/state/state-native"
+	v1 "github.com/prysmaticlabs/prysm/v3/beacon-chain/state/v1"
+	"github.com/prysmaticlabs/prysm/v3/config/features"
+	"github.com/prysmaticlabs/prysm/v3/config/params"
+	contracts "github.com/prysmaticlabs/prysm/v3/contracts/deposit"
+	"github.com/prysmaticlabs/prysm/v3/crypto/hash"
+	"github.com/prysmaticlabs/prysm/v3/encoding/bytesutil"
+	ethpb "github.com/prysmaticlabs/prysm/v3/proto/prysm/v1alpha1"
+	"github.com/prysmaticlabs/prysm/v3/time/slots"
 	"github.com/sirupsen/logrus"
 )
 
@@ -403,6 +403,10 @@ func (s *Service) processBlockInBatch(ctx context.Context, currentBlockNum uint6
 		}
 	}
 
+	s.latestEth1DataLock.RLock()
+	lastReqBlock := s.latestEth1Data.LastRequestedBlock
+	s.latestEth1DataLock.RUnlock()
+
 	for _, filterLog := range logs {
 		if filterLog.BlockNumber > currentBlockNum {
 			if err := s.checkHeaderRange(ctx, currentBlockNum, filterLog.BlockNumber-1, headersMap, requestHeaders); err != nil {
@@ -415,6 +419,13 @@ func (s *Service) processBlockInBatch(ctx context.Context, currentBlockNum uint6
 			currentBlockNum = filterLog.BlockNumber
 		}
 		if err := s.ProcessLog(ctx, filterLog); err != nil {
+			// In the event the execution client gives us a garbled/bad log
+			// we reset the last requested block to the previous valid block range. This
+			// prevents the beacon from advancing processing of logs to another range
+			// in the event of an execution client failure.
+			s.latestEth1DataLock.Lock()
+			s.latestEth1Data.LastRequestedBlock = lastReqBlock
+			s.latestEth1DataLock.Unlock()
 			return 0, 0, err
 		}
 	}

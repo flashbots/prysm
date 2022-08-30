@@ -7,21 +7,21 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/prysmaticlabs/prysm/async"
-	"github.com/prysmaticlabs/prysm/beacon-chain/core/signing"
-	fieldparams "github.com/prysmaticlabs/prysm/config/fieldparams"
-	"github.com/prysmaticlabs/prysm/config/params"
-	"github.com/prysmaticlabs/prysm/consensus-types/blocks"
-	"github.com/prysmaticlabs/prysm/consensus-types/interfaces"
-	types "github.com/prysmaticlabs/prysm/consensus-types/primitives"
-	"github.com/prysmaticlabs/prysm/crypto/bls"
-	"github.com/prysmaticlabs/prysm/crypto/rand"
-	"github.com/prysmaticlabs/prysm/encoding/bytesutil"
-	ethpb "github.com/prysmaticlabs/prysm/proto/prysm/v1alpha1"
-	validatorpb "github.com/prysmaticlabs/prysm/proto/prysm/v1alpha1/validator-client"
-	"github.com/prysmaticlabs/prysm/runtime/version"
-	prysmTime "github.com/prysmaticlabs/prysm/time"
-	"github.com/prysmaticlabs/prysm/validator/client/iface"
+	"github.com/prysmaticlabs/prysm/v3/async"
+	"github.com/prysmaticlabs/prysm/v3/beacon-chain/core/signing"
+	fieldparams "github.com/prysmaticlabs/prysm/v3/config/fieldparams"
+	"github.com/prysmaticlabs/prysm/v3/config/params"
+	"github.com/prysmaticlabs/prysm/v3/consensus-types/blocks"
+	"github.com/prysmaticlabs/prysm/v3/consensus-types/interfaces"
+	types "github.com/prysmaticlabs/prysm/v3/consensus-types/primitives"
+	"github.com/prysmaticlabs/prysm/v3/crypto/bls"
+	"github.com/prysmaticlabs/prysm/v3/crypto/rand"
+	"github.com/prysmaticlabs/prysm/v3/encoding/bytesutil"
+	ethpb "github.com/prysmaticlabs/prysm/v3/proto/prysm/v1alpha1"
+	validatorpb "github.com/prysmaticlabs/prysm/v3/proto/prysm/v1alpha1/validator-client"
+	"github.com/prysmaticlabs/prysm/v3/runtime/version"
+	prysmTime "github.com/prysmaticlabs/prysm/v3/time"
+	"github.com/prysmaticlabs/prysm/v3/validator/client/iface"
 	"github.com/sirupsen/logrus"
 	"go.opencensus.io/trace"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -150,17 +150,19 @@ func (v *validator) ProposeBlock(ctx context.Context, slot types.Slot, pubKey [f
 			log.WithError(err).Error("Failed to get execution payload")
 			return
 		}
-		txs, err := p.Transactions()
-		if err != nil {
-			log.WithError(err).Error("Failed to get execution payload transactions")
-			return
-		}
 		log = log.WithFields(logrus.Fields{
 			"payloadHash": fmt.Sprintf("%#x", bytesutil.Trunc(p.BlockHash())),
 			"parentHash":  fmt.Sprintf("%#x", bytesutil.Trunc(p.ParentHash())),
 			"blockNumber": p.BlockNumber,
-			"txCount":     len(txs),
 		})
+		if !blk.IsBlinded() {
+			txs, err := p.Transactions()
+			if err != nil {
+				log.WithError(err).Error("Failed to get execution payload transactions")
+				return
+			}
+			log = log.WithField("txCount", len(txs))
+		}
 		if p.GasLimit() != 0 {
 			log = log.WithField("gasUtilized", float64(p.GasUsed())/float64(p.GasLimit()))
 		}
