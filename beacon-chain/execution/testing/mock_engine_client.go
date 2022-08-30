@@ -12,6 +12,7 @@ import (
 	"github.com/prysmaticlabs/prysm/v3/consensus-types/blocks"
 	"github.com/prysmaticlabs/prysm/v3/consensus-types/interfaces"
 	"github.com/prysmaticlabs/prysm/v3/encoding/bytesutil"
+	"github.com/prysmaticlabs/prysm/v3/proto/builder"
 	pb "github.com/prysmaticlabs/prysm/v3/proto/engine/v1"
 )
 
