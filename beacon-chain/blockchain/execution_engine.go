@@ -17,8 +17,8 @@ import (
 	"github.com/prysmaticlabs/prysm/v3/consensus-types/interfaces"
 	types "github.com/prysmaticlabs/prysm/v3/consensus-types/primitives"
 	"github.com/prysmaticlabs/prysm/v3/encoding/bytesutil"
-	enginev1 "github.com/prysmaticlabs/prysm/v3/proto/engine/v1"
 	"github.com/prysmaticlabs/prysm/v3/proto/builder"
+	enginev1 "github.com/prysmaticlabs/prysm/v3/proto/engine/v1"
 	"github.com/prysmaticlabs/prysm/v3/time/slots"
 	"github.com/sirupsen/logrus"
 	"go.opencensus.io/trace"
@@ -259,25 +259,22 @@ func (s *Service) notifyBuildBlock(ctx context.Context, st state.BeaconState, sl
 	ctx, span := trace.StartSpan(ctx, "blockChain.notifyBuildBlock")
 	defer span.End()
 
-	// Must not call fork choice updated until the transition conditions are met on the Pow network.
-	isExecutionBlk, err := blocks.IsExecutionBlock(headBlock.Body())
-	if err != nil {
-		return false, err
-	}
+	if !s.cfg.PreMergeBlockBuild {
+		// Must not call fork choice updated until the transition conditions are met on the Pow network.
+		isExecutionBlk, err := blocks.IsExecutionBlock(headBlock.Body())
+		if err != nil {
+			return false, err
+		}
 
-	if !isExecutionBlk {
-		return false, nil
-	}
-
-	block, err := headBlock.Body().Execution()
-	if err != nil {
-		return false, err
+		if !isExecutionBlk {
+			return false, nil
+		}
 	}
 
 	// Get previous randao.
 	if process {
 		st = st.Copy()
-		st, err = transition.ProcessSlotsIfPossible(ctx, st, slot)
+		_, err := transition.ProcessSlotsIfPossible(ctx, st, slot)
 		if err != nil {
 			return false, err
 		}
@@ -297,7 +294,7 @@ func (s *Service) notifyBuildBlock(ctx context.Context, st state.BeaconState, sl
 		Timestamp:  uint64(t.Unix()),
 		Slot:       slot,
 		PrevRandao: prevRando,
-		BlockHash:  block.BlockHash(),
+		BlockHash:  headBlock.Body().Eth1Data().BlockHash,
 	}
 
 	_, err = s.cfg.ExecutionEngineCaller.PayloadAttributes(ctx, attr)

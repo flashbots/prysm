@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"os"
 	"runtime"
 	"sync"
 	"time"
@@ -81,6 +82,7 @@ type config struct {
 	BlockFetcher            execution.POWBlockFetcher
 	FinalizedStateAtStartUp state.BeaconState
 	ExecutionEngineCaller   execution.EngineCaller
+	PreMergeBlockBuild      bool
 }
 
 // NewService instantiates a new block service instance that will
@@ -100,6 +102,7 @@ func NewService(ctx context.Context, opts ...Option) (*Service, error) {
 			return nil, err
 		}
 	}
+	srv.cfg.PreMergeBlockBuild = os.Getenv("PRE_MERGE_BLOCK_BUILD") != ""
 	var err error
 	if srv.justifiedBalances == nil {
 		srv.justifiedBalances, err = newStateBalanceCache(srv.cfg.StateGen)
