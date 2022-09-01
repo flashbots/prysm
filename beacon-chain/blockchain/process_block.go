@@ -3,7 +3,6 @@ package blockchain
 import (
 	"context"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/pkg/errors"
@@ -134,11 +133,12 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.SignedBeaconBlo
 	}
 	if isValidPayload {
 		notifiedBuild := false
-		if os.Getenv("ALLOW_PRE_MERGE_BLOCK_BUILDING") != "" {
+		if s.cfg.PreMergeBlockBuild {
 			if _, err := s.notifyBuildBlock(ctx, postState, postState.Slot()+1, signed.Block(), true); err != nil {
 				log.WithError(err).Error("Could not notify builder to build block")
+			} else {
+				notifiedBuild = true
 			}
-			notifiedBuild = true
 		}
 
 		if err := s.validateMergeTransitionBlock(ctx, preStateVersion, preStateHeader, signed); err != nil {
@@ -401,12 +401,13 @@ func (s *Service) onBlockBatch(ctx context.Context, blks []interfaces.SignedBeac
 	}
 
 	notifiedBuilder := false
-	if os.Getenv("ALLOW_PRE_MERGE_BLOCK_BUILDING") != "" {
+	if s.cfg.PreMergeBlockBuild {
 		b := blks[len(blks)-1].Block()
 		if _, err := s.notifyBuildBlock(ctx, preState, b.Slot()+1, b, true); err != nil {
 			log.WithError(err).Error("Could not notify builder to build block")
+		} else {
+			notifiedBuilder = true
 		}
-		notifiedBuilder = true
 	}
 
 	// blocks have been verified, save them and call the engine
