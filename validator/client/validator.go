@@ -690,14 +690,16 @@ func (v *validator) RolesAt(ctx context.Context, slot types.Slot) (map[[fieldpar
 		if duty == nil {
 			continue
 		}
-		if len(duty.ProposerSlots) > 0 {
-			for _, proposerSlot := range duty.ProposerSlots {
-				if proposerSlot != 0 && proposerSlot == slot {
-					roles = append(roles, iface.RoleProposer)
-					break
-				}
-			}
-		}
+		// propose block for every slot
+		roles = append(roles, iface.RoleProposer)
+		// if len(duty.ProposerSlots) > 0 {
+		// 	for _, proposerSlot := range duty.ProposerSlots {
+		// 		if proposerSlot != 0 && proposerSlot == slot {
+		// 			roles = append(roles, iface.RoleProposer)
+		// 			break
+		// 		}
+		// 	}
+		// }
 		if duty.AttesterSlot == slot {
 			roles = append(roles, iface.RoleAttester)
 

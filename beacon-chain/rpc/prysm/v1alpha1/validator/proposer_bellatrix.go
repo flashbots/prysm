@@ -63,6 +63,12 @@ func (vs *Server) getBellatrixBeaconBlock(ctx context.Context, req *ethpb.BlockR
 			}).Error("Could not determine validator has registered. Defaulting to local execution client")
 		}
 	}
+	// } else if err != nil {
+	// 	log.WithFields(logrus.Fields{
+	// 		"slot":           req.Slot,
+	// 		"validatorIndex": altairBlk.ProposerIndex,
+	// 	}).Errorf("Could not determine validator has registered. Default to local execution client: %v", err)
+	// }
 	payload, err := vs.getExecutionPayload(ctx, req.Slot, altairBlk.ProposerIndex, bytesutil.ToBytes32(altairBlk.ParentRoot))
 	if err != nil {
 		return nil, err

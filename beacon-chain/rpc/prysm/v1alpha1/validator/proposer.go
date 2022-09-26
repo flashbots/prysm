@@ -2,7 +2,7 @@ package validator
 
 import (
 	"context"
-	"encoding/hex"
+	// "encoding/hex"
 	"fmt"
 	"strings"
 	"time"
@@ -178,21 +178,21 @@ func (vs *Server) proposeGenericBeaconBlock(ctx context.Context, blk interfaces.
 		})
 	}()
 
-	// Broadcast the new block to the network.
-	blkPb, err := blk.Proto()
-	if err != nil {
-		return nil, errors.Wrap(err, "could not get protobuf block")
-	}
-	if err := vs.P2P.Broadcast(ctx, blkPb); err != nil {
-		return nil, fmt.Errorf("could not broadcast block: %v", err)
-	}
-	log.WithFields(logrus.Fields{
-		"blockRoot": hex.EncodeToString(root[:]),
-	}).Debug("Broadcasting block")
+	// // Broadcast the new block to the network.
+	// blkPb, err := blk.Proto()
+	// if err != nil {
+	// 	return nil, errors.Wrap(err, "could not get protobuf block")
+	// }
+	// if err := vs.P2P.Broadcast(ctx, blkPb); err != nil {
+	// 	return nil, fmt.Errorf("could not broadcast block: %v", err)
+	// }
+	// log.WithFields(logrus.Fields{
+	// 	"blockRoot": hex.EncodeToString(root[:]),
+	// }).Debug("Broadcasting block")
 
-	if err := vs.BlockReceiver.ReceiveBlock(ctx, blk, root); err != nil {
-		return nil, fmt.Errorf("could not process beacon block: %v", err)
-	}
+	// if err := vs.BlockReceiver.ReceiveBlock(ctx, blk, root); err != nil {
+	// 	return nil, fmt.Errorf("could not process beacon block: %v", err)
+	// }
 
 	return &ethpb.ProposeResponse{
 		BlockRoot: root[:],
