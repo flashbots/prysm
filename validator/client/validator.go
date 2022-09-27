@@ -364,60 +364,61 @@ func (v *validator) ReceiveBlocks(ctx context.Context, connectionErrorChannel ch
 }
 
 func (v *validator) checkAndLogValidatorStatus(statuses []*validatorStatus, activeValCount uint64) bool {
-	activationsPerEpoch :=
-		uint64(math.Max(float64(params.BeaconConfig().MinPerEpochChurnLimit), float64(activeValCount/params.BeaconConfig().ChurnLimitQuotient)))
+	return true
+	// activationsPerEpoch :=
+	// 	uint64(math.Max(float64(params.BeaconConfig().MinPerEpochChurnLimit), float64(activeValCount/params.BeaconConfig().ChurnLimitQuotient)))
 
-	nonexistentIndex := types.ValidatorIndex(^uint64(0))
-	var validatorActivated bool
-	for _, status := range statuses {
-		fields := logrus.Fields{
-			"pubKey": fmt.Sprintf("%#x", bytesutil.Trunc(status.publicKey)),
-			"status": status.status.Status.String(),
-		}
-		if status.index != nonexistentIndex {
-			fields["index"] = status.index
-		}
-		log := log.WithFields(fields)
-		if v.emitAccountMetrics {
-			fmtKey := fmt.Sprintf("%#x", status.publicKey)
-			ValidatorStatusesGaugeVec.WithLabelValues(fmtKey).Set(float64(status.status.Status))
-		}
-		switch status.status.Status {
-		case ethpb.ValidatorStatus_UNKNOWN_STATUS:
-			log.Info("Waiting for deposit to be observed by beacon node")
-		case ethpb.ValidatorStatus_DEPOSITED:
-			if status.status.PositionInActivationQueue != 0 {
-				log.WithField(
-					"positionInActivationQueue", status.status.PositionInActivationQueue,
-				).Info("Deposit processed, entering activation queue after finalization")
-			}
-		case ethpb.ValidatorStatus_PENDING:
-			secondsPerEpoch := uint64(params.BeaconConfig().SlotsPerEpoch.Mul(params.BeaconConfig().SecondsPerSlot))
-			expectedWaitingTime :=
-				time.Duration((status.status.PositionInActivationQueue+activationsPerEpoch)/activationsPerEpoch*secondsPerEpoch) * time.Second
-			if status.status.ActivationEpoch == params.BeaconConfig().FarFutureEpoch {
-				log.WithFields(logrus.Fields{
-					"positionInActivationQueue": status.status.PositionInActivationQueue,
-					"expectedWaitingTime":       expectedWaitingTime.String(),
-				}).Info("Waiting to be assigned activation epoch")
-			} else {
-				log.WithFields(logrus.Fields{
-					"activationEpoch": status.status.ActivationEpoch,
-				}).Info("Waiting for activation")
-			}
-		case ethpb.ValidatorStatus_ACTIVE, ethpb.ValidatorStatus_EXITING:
-			validatorActivated = true
-		case ethpb.ValidatorStatus_EXITED:
-			log.Info("Validator exited")
-		case ethpb.ValidatorStatus_INVALID:
-			log.Warn("Invalid Eth1 deposit")
-		default:
-			log.WithFields(logrus.Fields{
-				"activationEpoch": status.status.ActivationEpoch,
-			}).Info("Validator status")
-		}
-	}
-	return validatorActivated
+	// nonexistentIndex := types.ValidatorIndex(^uint64(0))
+	// var validatorActivated bool
+	// for _, status := range statuses {
+	// 	fields := logrus.Fields{
+	// 		"pubKey": fmt.Sprintf("%#x", bytesutil.Trunc(status.publicKey)),
+	// 		"status": status.status.Status.String(),
+	// 	}
+	// 	if status.index != nonexistentIndex {
+	// 		fields["index"] = status.index
+	// 	}
+	// 	log := log.WithFields(fields)
+	// 	if v.emitAccountMetrics {
+	// 		fmtKey := fmt.Sprintf("%#x", status.publicKey)
+	// 		ValidatorStatusesGaugeVec.WithLabelValues(fmtKey).Set(float64(status.status.Status))
+	// 	}
+	// 	switch status.status.Status {
+	// 	case ethpb.ValidatorStatus_UNKNOWN_STATUS:
+	// 		log.Info("Waiting for deposit to be observed by beacon node")
+	// 	case ethpb.ValidatorStatus_DEPOSITED:
+	// 		if status.status.PositionInActivationQueue != 0 {
+	// 			log.WithField(
+	// 				"positionInActivationQueue", status.status.PositionInActivationQueue,
+	// 			).Info("Deposit processed, entering activation queue after finalization")
+	// 		}
+	// 	case ethpb.ValidatorStatus_PENDING:
+	// 		secondsPerEpoch := uint64(params.BeaconConfig().SlotsPerEpoch.Mul(params.BeaconConfig().SecondsPerSlot))
+	// 		expectedWaitingTime :=
+	// 			time.Duration((status.status.PositionInActivationQueue+activationsPerEpoch)/activationsPerEpoch*secondsPerEpoch) * time.Second
+	// 		if status.status.ActivationEpoch == params.BeaconConfig().FarFutureEpoch {
+	// 			log.WithFields(logrus.Fields{
+	// 				"positionInActivationQueue": status.status.PositionInActivationQueue,
+	// 				"expectedWaitingTime":       expectedWaitingTime.String(),
+	// 			}).Info("Waiting to be assigned activation epoch")
+	// 		} else {
+	// 			log.WithFields(logrus.Fields{
+	// 				"activationEpoch": status.status.ActivationEpoch,
+	// 			}).Info("Waiting for activation")
+	// 		}
+	// 	case ethpb.ValidatorStatus_ACTIVE, ethpb.ValidatorStatus_EXITING:
+	// 		validatorActivated = true
+	// 	case ethpb.ValidatorStatus_EXITED:
+	// 		log.Info("Validator exited")
+	// 	case ethpb.ValidatorStatus_INVALID:
+	// 		log.Warn("Invalid Eth1 deposit")
+	// 	default:
+	// 		log.WithFields(logrus.Fields{
+	// 			"activationEpoch": status.status.ActivationEpoch,
+	// 		}).Info("Validator status")
+	// 	}
+	// }
+	// return validatorActivated
 }
 
 func logActiveValidatorStatus(statuses []*validatorStatus) {
