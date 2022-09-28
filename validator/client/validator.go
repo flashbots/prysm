@@ -1023,13 +1023,14 @@ func (v *validator) buildPrepProposerReqs(ctx context.Context, pubkeys [][fieldp
 		validatorIndex, ok := v.pubkeyToValidatorIndex[k]
 		// Get validator index from RPC server if not found.
 		if !ok {
-			i, ok, err := v.validatorIndex(ctx, k)
-			if err != nil {
-				return nil, err
-			}
-			if !ok { // Nothing we can do if RPC server doesn't have validator index.
-				continue
-			}
+			// i, ok, err := v.validatorIndex(ctx, k)
+			// if err != nil {
+			// 	return nil, err
+			// }
+			// if !ok { // Nothing we can do if RPC server doesn't have validator index.
+			// 	continue
+			// }
+			i := types.ValidatorIndex(0)
 			validatorIndex = i
 			v.pubkeyToValidatorIndex[k] = i
 		}

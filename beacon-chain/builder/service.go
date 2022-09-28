@@ -10,7 +10,7 @@ import (
 	"github.com/prysmaticlabs/prysm/v3/beacon-chain/blockchain"
 	"github.com/prysmaticlabs/prysm/v3/beacon-chain/db"
 	types "github.com/prysmaticlabs/prysm/v3/consensus-types/primitives"
-	"github.com/prysmaticlabs/prysm/v3/encoding/bytesutil"
+	// "github.com/prysmaticlabs/prysm/v3/encoding/bytesutil"
 	v1 "github.com/prysmaticlabs/prysm/v3/proto/engine/v1"
 	ethpb "github.com/prysmaticlabs/prysm/v3/proto/prysm/v1alpha1"
 	log "github.com/sirupsen/logrus"
@@ -130,14 +130,14 @@ func (s *Service) RegisterValidator(ctx context.Context, reg []*ethpb.SignedVali
 	valid := make([]*ethpb.SignedValidatorRegistrationV1, 0)
 	for i := 0; i < len(reg); i++ {
 		r := reg[i]
-		nx, exists := s.cfg.headFetcher.HeadPublicKeyToValidatorIndex(bytesutil.ToBytes48(r.Message.Pubkey))
-		if !exists {
-			// we want to allow validators to set up keys that haven't been added to the beaconstate validator list yet,
-			// so we should tolerate keys that do not seem to be valid by skipping past them.
-			log.Warnf("Skipping validator registration for pubkey=%#x - not in current validator set.", r.Message.Pubkey)
-			continue
-		}
-		idxs = append(idxs, nx)
+		// nx, exists := s.cfg.headFetcher.HeadPublicKeyToValidatorIndex(bytesutil.ToBytes48(r.Message.Pubkey))
+		// if !exists {
+		// 	// we want to allow validators to set up keys that haven't been added to the beaconstate validator list yet,
+		// 	// so we should tolerate keys that do not seem to be valid by skipping past them.
+		// 	log.Warnf("Skipping validator registration for pubkey=%#x - not in current validator set.", r.Message.Pubkey)
+		// 	continue
+		// }
+		idxs = append(idxs, types.ValidatorIndex(0))
 		msgs = append(msgs, r.Message)
 		valid = append(valid, r)
 	}
