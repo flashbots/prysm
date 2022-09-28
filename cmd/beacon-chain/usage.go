@@ -136,6 +136,7 @@ var appHelpFlagGroups = []flagGroup{
 	{
 		Name: "merge",
 		Flags: []cli.Flag{
+			flags.ProposerPubKey,
 			flags.SuggestedFeeRecipient,
 			flags.TerminalTotalDifficultyOverride,
 			flags.TerminalBlockHashOverride,

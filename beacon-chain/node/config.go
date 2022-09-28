@@ -4,12 +4,16 @@ import (
 	"fmt"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	fieldparams "github.com/prysmaticlabs/prysm/v3/config/fieldparams"
+	"github.com/pkg/errors"
 	fastssz "github.com/prysmaticlabs/fastssz"
 	"github.com/prysmaticlabs/prysm/v3/cmd"
 	"github.com/prysmaticlabs/prysm/v3/cmd/beacon-chain/flags"
 	"github.com/prysmaticlabs/prysm/v3/config/features"
 	"github.com/prysmaticlabs/prysm/v3/config/params"
 	types "github.com/prysmaticlabs/prysm/v3/consensus-types/primitives"
+	"github.com/prysmaticlabs/prysm/v3/encoding/bytesutil"
 	tracing2 "github.com/prysmaticlabs/prysm/v3/monitoring/tracing"
 	"github.com/urfave/cli/v2"
 )
@@ -159,6 +163,21 @@ func configureExecutionSetting(cliCtx *cli.Context) error {
 		c := params.BeaconConfig()
 		c.TerminalBlockHashActivationEpoch = types.Epoch(cliCtx.Uint64(flags.TerminalBlockHashActivationEpochOverride.Name))
 		log.WithField("terminal block hash activation epoch", c.TerminalBlockHashActivationEpoch).Warn("Terminal block hash activation epoch overridden")
+		params.OverrideBeaconConfig(c)
+	}
+
+	// set testing proposer pub key
+	if cliCtx.IsSet(flags.ProposerPubKey.Name) {
+		c := params.BeaconConfig()
+		log.WithField("proposer pub key", cliCtx.String(flags.ProposerPubKey.Name)).Info("Proposer pub key set")
+		decodedKey, err := hexutil.Decode(cliCtx.String(flags.ProposerPubKey.Name))
+		if err != nil {
+			return errors.Wrapf(err, "could not decode public key %s", cliCtx.String(flags.ProposerPubKey.Name))
+		}
+		if len(decodedKey) != fieldparams.BLSPubkeyLength {
+			return fmt.Errorf("%v is not a bls public key", cliCtx.String(flags.ProposerPubKey.Name))
+		}
+		c.DefaultProposerPubKey = bytesutil.ToBytes48(decodedKey)
 		params.OverrideBeaconConfig(c)
 	}
 

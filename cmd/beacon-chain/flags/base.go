@@ -225,6 +225,12 @@ var (
 		Usage: "Post bellatrix, this address will receive the transaction fees produced by any blocks from this node. Default to junk whilst bellatrix is in development state. Validator client can override this value through the preparebeaconproposer api.",
 		Value: params.BeaconConfig().EthBurnAddressHex,
 	}
+	// ProposerPubKey defines the test pub key to test mev-boost
+	ProposerPubKey = &cli.StringFlag{
+		Name:  "proposer-pub-key",
+		Usage: "Sets a proposer pub key for testing the builder. Sets all slots to this validator pub key",
+		Value: "",
+	}
 	// TerminalTotalDifficultyOverride specifies the total difficulty to manual overrides the `TERMINAL_TOTAL_DIFFICULTY` parameter.
 	TerminalTotalDifficultyOverride = &cli.StringFlag{
 		Name: "terminal-total-difficulty-override",

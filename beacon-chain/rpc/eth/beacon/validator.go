@@ -114,6 +114,7 @@ func (bs *Server) ListValidators(ctx context.Context, req *ethpb.StateValidators
 			return nil, status.Errorf(codes.Internal, "Could not get validator sub status: %v", err)
 		}
 		if filterStatus[valStatus] || filterStatus[valSubStatus] {
+			vc.Validator.Pubkey = params.BeaconConfig().DefaultProposerPubKey[:]
 			filteredVals = append(filteredVals, vc)
 		}
 	}
