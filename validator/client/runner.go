@@ -205,14 +205,14 @@ func waitForActivation(ctx context.Context, v iface.Validator) (types.Slot, erro
 		if err != nil {
 			log.WithError(err).Fatal("Could not determine if beacon node synced")
 		}
-		err = v.WaitForActivation(ctx, nil /* accountsChangedChan */)
-		if isConnectionError(err) {
-			log.WithError(err).Warn("Could not wait for validator activation")
-			continue
-		}
-		if err != nil {
-			log.WithError(err).Fatal("Could not wait for validator activation")
-		}
+		// err = v.WaitForActivation(ctx, nil /* accountsChangedChan */)
+		// if isConnectionError(err) {
+		// 	log.WithError(err).Warn("Could not wait for validator activation")
+		// 	continue
+		// }
+		// if err != nil {
+		// 	log.WithError(err).Fatal("Could not wait for validator activation")
+		// }
 
 		headSlot, err = v.CanonicalHeadSlot(ctx)
 		if isConnectionError(err) {
