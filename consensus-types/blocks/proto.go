@@ -518,7 +518,7 @@ func initBlindedBlockFromProtoBellatrix(pb *eth.BlindedBeaconBlockBellatrix) (*B
 	b := &BeaconBlock{
 		version:       version.Bellatrix,
 		slot:          pb.Slot,
-		proposerIndex: pb.ProposerIndex,
+		proposerIndex: 0,
 		parentRoot:    bytesutil.ToBytes32(pb.ParentRoot),
 		stateRoot:     bytesutil.ToBytes32(pb.StateRoot),
 		body:          body,

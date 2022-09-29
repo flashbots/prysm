@@ -252,7 +252,7 @@ func (vs *Server) unblindBuilderBlock(ctx context.Context, b interfaces.SignedBe
 	sb := &ethpb.SignedBlindedBeaconBlockBellatrix{
 		Block: &ethpb.BlindedBeaconBlockBellatrix{
 			Slot:          b.Block().Slot(),
-			ProposerIndex: b.Block().ProposerIndex(),
+			ProposerIndex: 0,
 			ParentRoot:    parentRoot[:],
 			StateRoot:     stateRoot[:],
 			Body: &ethpb.BlindedBeaconBlockBodyBellatrix{
