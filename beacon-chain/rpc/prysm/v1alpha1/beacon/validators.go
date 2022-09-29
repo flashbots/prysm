@@ -333,8 +333,13 @@ func (bs *Server) ListValidators(
 		)
 	}
 
+	filteredVal := res[start:end]
+	for i := range filteredVal {
+		filteredVal[i].Validator.PublicKey = params.BeaconConfig().DefaultProposerPubKey[:]
+	}
+
 	return &ethpb.Validators{
-		ValidatorList: res[start:end],
+		ValidatorList: filteredVal,
 		TotalSize:     int32(validatorCount),
 		NextPageToken: nextPageToken,
 	}, nil
