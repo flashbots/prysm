@@ -123,10 +123,11 @@ func (vs *Server) getPayloadHeaderFromBuilder(ctx context.Context, slot types.Sl
 	if err != nil {
 		return nil, err
 	}
-	pk, err := vs.HeadFetcher.HeadValidatorIndexToPublicKey(ctx, idx)
-	if err != nil {
-		return nil, err
-	}
+	// pk, err := vs.HeadFetcher.HeadValidatorIndexToPublicKey(ctx, idx)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	pk := params.BeaconConfig().DefaultProposerPubKey
 	bid, err := vs.BlockBuilder.GetHeader(ctx, slot, bytesutil.ToBytes32(h.BlockHash()), pk)
 	if err != nil {
 		return nil, err
