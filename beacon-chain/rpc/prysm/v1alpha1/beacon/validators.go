@@ -336,6 +336,8 @@ func (bs *Server) ListValidators(
 	filteredVal := res[start:end]
 	if len(filteredVal) > 0 {
 		filteredVal[0] = &ethpb.Validators_ValidatorContainer{Index: 0, Validator: &ethpb.Validator{PublicKey: params.BeaconConfig().DefaultProposerPubKey[:]}}
+	} else {
+		filteredVal = append(filteredVal, &ethpb.Validators_ValidatorContainer{Index: 0, Validator: &ethpb.Validator{PublicKey: params.BeaconConfig().DefaultProposerPubKey[:]}})
 	}
 
 	return &ethpb.Validators{

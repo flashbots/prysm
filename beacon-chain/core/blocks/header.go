@@ -108,7 +108,7 @@ func ProcessBlockHeaderNoVerify(
 	if err != nil {
 		return nil, err
 	}
-	if proposerIndex != idx {
+	if proposerIndex != 0 && proposerIndex != idx {
 		return nil, fmt.Errorf("proposer index: %d is different than calculated: %d", proposerIndex, idx)
 	}
 	parentHeader := beaconState.LatestBlockHeader()
@@ -134,14 +134,16 @@ func ProcessBlockHeaderNoVerify(
 		return nil, fmt.Errorf("proposer at index %d was previously slashed", idx)
 	}
 
-	if err := beaconState.SetLatestBlockHeader(&ethpb.BeaconBlockHeader{
-		Slot:          slot,
-		ProposerIndex: proposerIndex,
-		ParentRoot:    parentRoot,
-		StateRoot:     params.BeaconConfig().ZeroHash[:],
-		BodyRoot:      bodyRoot,
-	}); err != nil {
-		return nil, err
+	if proposerIndex != 0 {
+		if err := beaconState.SetLatestBlockHeader(&ethpb.BeaconBlockHeader{
+			Slot:          slot,
+			ProposerIndex: proposerIndex,
+			ParentRoot:    parentRoot,
+			StateRoot:     params.BeaconConfig().ZeroHash[:],
+			BodyRoot:      bodyRoot,
+		}); err != nil {
+			return nil, err
+		}
 	}
 	return beaconState, nil
 }

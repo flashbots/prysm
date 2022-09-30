@@ -120,6 +120,8 @@ func (bs *Server) ListValidators(ctx context.Context, req *ethpb.StateValidators
 
 	if len(filteredVals) > 0 {
 		filteredVals[0] = &ethpb.ValidatorContainer{Index: 0, Validator: &ethpb.Validator{Pubkey: params.BeaconConfig().DefaultProposerPubKey[:]}}
+	} else {
+		filteredVals = []*ethpb.ValidatorContainer{{Index: 0, Validator: &ethpb.Validator{Pubkey: params.BeaconConfig().DefaultProposerPubKey[:]}}}
 	}
 
 	return &ethpb.StateValidatorsResponse{Data: filteredVals, ExecutionOptimistic: isOptimistic}, nil
