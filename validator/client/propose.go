@@ -86,6 +86,10 @@ func (v *validator) ProposeBlock(ctx context.Context, slot types.Slot, pubKey [f
 		return
 	}
 
+	if (b.GetBlindedBellatrix() != nil) {
+		b.GetBlindedBellatrix().ProposerIndex = 0
+	}
+	
 	// Sign returned block from beacon node
 	wb, err := blocks.NewBeaconBlock(b.Block)
 	if err != nil {
