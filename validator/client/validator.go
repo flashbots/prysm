@@ -605,11 +605,11 @@ func (v *validator) UpdateDuties(ctx context.Context, slot types.Slot) error {
 	v.logDuties(slot, v.duties.CurrentEpochDuties)
 
 	// Non-blocking call for beacon node to start subscriptions for aggregators.
-	go func() {
-		if err := v.subscribeToSubnets(context.Background(), resp); err != nil {
-			log.WithError(err).Error("Failed to subscribe to subnets")
-		}
-	}()
+	// go func() {
+	// 	if err := v.subscribeToSubnets(context.Background(), resp); err != nil {
+	// 		log.WithError(err).Error("Failed to subscribe to subnets")
+	// 	}
+	// }()
 
 	return nil
 }

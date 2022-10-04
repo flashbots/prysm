@@ -64,19 +64,19 @@ func (v *validator) ProposeBlock(ctx context.Context, slot types.Slot, pubKey [f
 		return
 	}
 
-	g, err := v.getGraffiti(ctx, pubKey)
-	if err != nil {
-		// Graffiti is not a critical enough to fail block production and cause
-		// validator to miss block reward. When failed, validator should continue
-		// to produce the block.
-		log.WithError(err).Warn("Could not get graffiti")
-	}
+	// g, err := v.getGraffiti(ctx, pubKey)
+	// if err != nil {
+	// 	// Graffiti is not a critical enough to fail block production and cause
+	// 	// validator to miss block reward. When failed, validator should continue
+	// 	// to produce the block.
+	// 	log.WithError(err).Warn("Could not get graffiti")
+	// }
 
 	// Request block from beacon node
 	b, err := v.validatorClient.GetBeaconBlock(ctx, &ethpb.BlockRequest{
 		Slot:         slot,
 		RandaoReveal: randaoReveal,
-		Graffiti:     g,
+		// Graffiti:     g,
 	})
 	if err != nil {
 		log.WithField("blockSlot", slot).WithError(err).Error("Failed to request block from beacon node")
