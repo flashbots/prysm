@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/prysmaticlabs/prysm/v3/beacon-chain/core/helpers"
+	// "github.com/prysmaticlabs/prysm/v3/beacon-chain/core/helpers"
 	"github.com/prysmaticlabs/prysm/v3/beacon-chain/state"
 	"github.com/prysmaticlabs/prysm/v3/config/params"
 	"github.com/prysmaticlabs/prysm/v3/consensus-types/blocks"
@@ -104,13 +104,15 @@ func ProcessBlockHeaderNoVerify(
 	if beaconState.Slot() != slot {
 		return nil, fmt.Errorf("state slot: %d is different than block slot: %d", beaconState.Slot(), slot)
 	}
-	idx, err := helpers.BeaconProposerIndex(ctx, beaconState)
-	if err != nil {
-		return nil, err
-	}
-	if proposerIndex != 0 && proposerIndex != idx {
-		return nil, fmt.Errorf("proposer index: %d is different than calculated: %d", proposerIndex, idx)
-	}
+	// ignore validator index check for now
+	// idx, err := helpers.BeaconProposerIndex(ctx, beaconState)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// if proposerIndex != idx {
+	// 	return nil, fmt.Errorf("proposer index: %d is different than calculated: %d", proposerIndex, idx)
+	// }
+	idx := proposerIndex
 	parentHeader := beaconState.LatestBlockHeader()
 	if parentHeader.Slot >= slot {
 		return nil, fmt.Errorf("block.Slot %d must be greater than state.LatestBlockHeader.Slot %d", slot, parentHeader.Slot)
@@ -134,16 +136,15 @@ func ProcessBlockHeaderNoVerify(
 		return nil, fmt.Errorf("proposer at index %d was previously slashed", idx)
 	}
 
-	if proposerIndex != 0 {
-		if err := beaconState.SetLatestBlockHeader(&ethpb.BeaconBlockHeader{
-			Slot:          slot,
-			ProposerIndex: proposerIndex,
-			ParentRoot:    parentRoot,
-			StateRoot:     params.BeaconConfig().ZeroHash[:],
-			BodyRoot:      bodyRoot,
-		}); err != nil {
-			return nil, err
-		}
+	if err := beaconState.SetLatestBlockHeader(&ethpb.BeaconBlockHeader{
+		Slot:          slot,
+		ProposerIndex: idx,
+		ParentRoot:    parentRoot,
+		StateRoot:     params.BeaconConfig().ZeroHash[:],
+		BodyRoot:      bodyRoot,
+	}); err != nil {
+		return nil, err
 	}
+
 	return beaconState, nil
 }
