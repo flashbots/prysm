@@ -159,7 +159,7 @@ func (vs *Server) GetProposerDuties(ctx context.Context, req *ethpbv1.ProposerDu
 	}
 
 	duties := make([]*ethpbv1.ProposerDuty, 0)
-	for index, ss := range proposals {
+	for _, ss := range proposals {
 		// val, err := s.ValidatorAtIndexReadOnly(index)
 		// if err != nil {
 		// 	return nil, status.Errorf(codes.Internal, "Could not get validator: %v", err)
@@ -170,7 +170,7 @@ func (vs *Server) GetProposerDuties(ctx context.Context, req *ethpbv1.ProposerDu
 			vs.ProposerSlotIndexCache.SetProposerAndPayloadIDs(s, index, [8]byte{} /* payloadID */, [32]byte{} /* head root */)
 			duties = append(duties, &ethpbv1.ProposerDuty{
 				Pubkey:         params.BeaconConfig().DefaultProposerPubKey[:],
-				ValidatorIndex: index,
+				ValidatorIndex: 0,
 				Slot:           s,
 			})
 		}
@@ -731,7 +731,6 @@ func (vs *Server) SubmitAggregateAndProofs(ctx context.Context, req *ethpbv1.Sub
 			return nil, status.Error(codes.InvalidArgument, "Attestation slot is no longer valid from current time")
 		}
 	}
-
 	// broadcastFailed := false
 	// for _, agg := range req.Data {
 	// 	v1alpha1Agg := migration.V1SignedAggregateAttAndProofToV1Alpha1(agg)
