@@ -135,9 +135,9 @@ func (vs *Server) SubmitSignedAggregateSelectionProof(
 		return nil, status.Error(codes.InvalidArgument, "Attestation slot is no longer valid from current time")
 	}
 
-	if err := vs.P2P.Broadcast(ctx, req.SignedAggregateAndProof); err != nil {
-		return nil, status.Errorf(codes.Internal, "Could not broadcast signed aggregated attestation: %v", err)
-	}
+	// if err := vs.P2P.Broadcast(ctx, req.SignedAggregateAndProof); err != nil {
+	// 	return nil, status.Errorf(codes.Internal, "Could not broadcast signed aggregated attestation: %v", err)
+	// }
 
 	log.WithFields(logrus.Fields{
 		"slot":            req.SignedAggregateAndProof.Message.Aggregate.Data.Slot,

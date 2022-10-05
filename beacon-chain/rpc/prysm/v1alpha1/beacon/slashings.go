@@ -3,7 +3,7 @@ package beacon
 import (
 	"context"
 
-	"github.com/prysmaticlabs/prysm/v3/config/features"
+	// "github.com/prysmaticlabs/prysm/v3/config/features"
 	types "github.com/prysmaticlabs/prysm/v3/consensus-types/primitives"
 	"github.com/prysmaticlabs/prysm/v3/container/slice"
 	ethpb "github.com/prysmaticlabs/prysm/v3/proto/prysm/v1alpha1"
@@ -25,11 +25,11 @@ func (bs *Server) SubmitProposerSlashing(
 	if err := bs.SlashingsPool.InsertProposerSlashing(ctx, beaconState, req); err != nil {
 		return nil, status.Errorf(codes.Internal, "Could not insert proposer slashing into pool: %v", err)
 	}
-	if !features.Get().DisableBroadcastSlashings {
-		if err := bs.Broadcaster.Broadcast(ctx, req); err != nil {
-			return nil, status.Errorf(codes.Internal, "Could not broadcast slashing object: %v", err)
-		}
-	}
+	// if !features.Get().DisableBroadcastSlashings {
+	// 	if err := bs.Broadcaster.Broadcast(ctx, req); err != nil {
+	// 		return nil, status.Errorf(codes.Internal, "Could not broadcast slashing object: %v", err)
+	// 	}
+	// }
 
 	return &ethpb.SubmitSlashingResponse{
 		SlashedIndices: []types.ValidatorIndex{req.Header_1.Header.ProposerIndex},
@@ -50,11 +50,11 @@ func (bs *Server) SubmitAttesterSlashing(
 	if err := bs.SlashingsPool.InsertAttesterSlashing(ctx, beaconState, req); err != nil {
 		return nil, status.Errorf(codes.Internal, "Could not insert attester slashing into pool: %v", err)
 	}
-	if !features.Get().DisableBroadcastSlashings {
-		if err := bs.Broadcaster.Broadcast(ctx, req); err != nil {
-			return nil, status.Errorf(codes.Internal, "Could not broadcast slashing object: %v", err)
-		}
-	}
+	// if !features.Get().DisableBroadcastSlashings {
+	// 	if err := bs.Broadcaster.Broadcast(ctx, req); err != nil {
+	// 		return nil, status.Errorf(codes.Internal, "Could not broadcast slashing object: %v", err)
+	// 	}
+	// }
 	indices := slice.IntersectionUint64(req.Attestation_1.AttestingIndices, req.Attestation_2.AttestingIndices)
 	slashedIndices := make([]types.ValidatorIndex, len(indices))
 	for i, index := range indices {

@@ -54,5 +54,6 @@ func (vs *Server) ProposeExit(ctx context.Context, req *ethpb.SignedVoluntaryExi
 
 	return &ethpb.ProposeExitResponse{
 		ExitRoot: r[:],
-	}, vs.P2P.Broadcast(ctx, req)
+	}, nil
+	// }, vs.P2P.Broadcast(ctx, req)
 }

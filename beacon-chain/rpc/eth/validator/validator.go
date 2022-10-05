@@ -732,26 +732,26 @@ func (vs *Server) SubmitAggregateAndProofs(ctx context.Context, req *ethpbv1.Sub
 		}
 	}
 
-	broadcastFailed := false
-	for _, agg := range req.Data {
-		v1alpha1Agg := migration.V1SignedAggregateAttAndProofToV1Alpha1(agg)
-		if err := vs.Broadcaster.Broadcast(ctx, v1alpha1Agg); err != nil {
-			broadcastFailed = true
-		} else {
-			log.WithFields(log.Fields{
-				"slot":            agg.Message.Aggregate.Data.Slot,
-				"committeeIndex":  agg.Message.Aggregate.Data.Index,
-				"validatorIndex":  agg.Message.AggregatorIndex,
-				"aggregatedCount": agg.Message.Aggregate.AggregationBits.Count(),
-			}).Debug("Broadcasting aggregated attestation and proof")
-		}
-	}
+	// broadcastFailed := false
+	// for _, agg := range req.Data {
+	// 	v1alpha1Agg := migration.V1SignedAggregateAttAndProofToV1Alpha1(agg)
+	// 	if err := vs.Broadcaster.Broadcast(ctx, v1alpha1Agg); err != nil {
+	// 		broadcastFailed = true
+	// 	} else {
+	// 		log.WithFields(log.Fields{
+	// 			"slot":            agg.Message.Aggregate.Data.Slot,
+	// 			"committeeIndex":  agg.Message.Aggregate.Data.Index,
+	// 			"validatorIndex":  agg.Message.AggregatorIndex,
+	// 			"aggregatedCount": agg.Message.Aggregate.AggregationBits.Count(),
+	// 		}).Debug("Broadcasting aggregated attestation and proof")
+	// 	}
+	// }
 
-	if broadcastFailed {
-		return nil, status.Errorf(
-			codes.Internal,
-			"Could not broadcast one or more signed aggregated attestations")
-	}
+	// if broadcastFailed {
+	// 	return nil, status.Errorf(
+	// 		codes.Internal,
+	// 		"Could not broadcast one or more signed aggregated attestations")
+	// }
 
 	return &emptypb.Empty{}, nil
 }

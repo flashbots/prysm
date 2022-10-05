@@ -106,10 +106,10 @@ func (s *Service) processAttestations(ctx context.Context, attestations []*ethpb
 				}
 				s.setAggregatorIndexEpochSeen(att.Aggregate.Data.Target.Epoch, att.AggregatorIndex)
 
-				// Broadcasting the signed attestation again once a node is able to process it.
-				if err := s.cfg.p2p.Broadcast(ctx, signedAtt); err != nil {
-					log.WithError(err).Debug("Could not broadcast")
-				}
+				// // Broadcasting the signed attestation again once a node is able to process it.
+				// if err := s.cfg.p2p.Broadcast(ctx, signedAtt); err != nil {
+				// 	log.WithError(err).Debug("Could not broadcast")
+				// }
 			}
 		} else {
 			// This is an important validation before retrieving attestation pre state to defend against

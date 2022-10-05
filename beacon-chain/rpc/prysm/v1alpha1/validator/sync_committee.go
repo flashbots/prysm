@@ -123,10 +123,10 @@ func (vs *Server) SubmitSignedContributionAndProof(
 ) (*emptypb.Empty, error) {
 	errs, ctx := errgroup.WithContext(ctx)
 
-	// Broadcasting and saving contribution into the pool in parallel. As one fail should not affect another.
-	errs.Go(func() error {
-		return vs.P2P.Broadcast(ctx, s)
-	})
+	// // Broadcasting and saving contribution into the pool in parallel. As one fail should not affect another.
+	// errs.Go(func() error {
+	// 	return vs.P2P.Broadcast(ctx, s)
+	// })
 
 	if err := vs.SyncCommitteePool.SaveSyncCommitteeContribution(s.Message.Contribution); err != nil {
 		return nil, err

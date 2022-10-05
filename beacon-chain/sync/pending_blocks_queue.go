@@ -178,15 +178,15 @@ func (s *Service) processPendingBlocks(ctx context.Context) error {
 
 			s.setSeenBlockIndexSlot(b.Block().Slot(), b.Block().ProposerIndex())
 
-			// Broadcasting the block again once a node is able to process it.
-			pb, err := b.Proto()
-			if err != nil {
-				log.WithError(err).Debug("Could not get protobuf block")
-			} else {
-				if err := s.cfg.p2p.Broadcast(ctx, pb); err != nil {
-					log.WithError(err).Debug("Could not broadcast block")
-				}
-			}
+			// // Broadcasting the block again once a node is able to process it.
+			// pb, err := b.Proto()
+			// if err != nil {
+			// 	log.WithError(err).Debug("Could not get protobuf block")
+			// } else {
+				// if err := s.cfg.p2p.Broadcast(ctx, pb); err != nil {
+				// 	log.WithError(err).Debug("Could not broadcast block")
+				// }
+			// }
 
 			s.pendingQueueLock.Lock()
 			if err := s.deleteBlockFromPendingQueue(slot, b, blkRoot); err != nil {

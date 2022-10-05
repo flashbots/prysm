@@ -10,7 +10,7 @@ import (
 	corehelpers "github.com/prysmaticlabs/prysm/v3/beacon-chain/core/helpers"
 	"github.com/prysmaticlabs/prysm/v3/beacon-chain/core/transition"
 	"github.com/prysmaticlabs/prysm/v3/beacon-chain/rpc/eth/helpers"
-	"github.com/prysmaticlabs/prysm/v3/config/features"
+	// "github.com/prysmaticlabs/prysm/v3/config/features"
 	"github.com/prysmaticlabs/prysm/v3/crypto/bls"
 	ethpbv1 "github.com/prysmaticlabs/prysm/v3/proto/eth/v1"
 	"github.com/prysmaticlabs/prysm/v3/proto/migration"
@@ -180,11 +180,11 @@ func (bs *Server) SubmitAttesterSlashing(ctx context.Context, req *ethpbv1.Attes
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Could not insert attester slashing into pool: %v", err)
 	}
-	if !features.Get().DisableBroadcastSlashings {
-		if err := bs.Broadcaster.Broadcast(ctx, req); err != nil {
-			return nil, status.Errorf(codes.Internal, "Could not broadcast slashing object: %v", err)
-		}
-	}
+	// if !features.Get().DisableBroadcastSlashings {
+	// 	if err := bs.Broadcaster.Broadcast(ctx, req); err != nil {
+	// 		return nil, status.Errorf(codes.Internal, "Could not broadcast slashing object: %v", err)
+	// 	}
+	// }
 
 	return &emptypb.Empty{}, nil
 }
@@ -236,11 +236,11 @@ func (bs *Server) SubmitProposerSlashing(ctx context.Context, req *ethpbv1.Propo
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Could not insert proposer slashing into pool: %v", err)
 	}
-	if !features.Get().DisableBroadcastSlashings {
-		if err := bs.Broadcaster.Broadcast(ctx, req); err != nil {
-			return nil, status.Errorf(codes.Internal, "Could not broadcast slashing object: %v", err)
-		}
-	}
+	// if !features.Get().DisableBroadcastSlashings {
+	// 	if err := bs.Broadcaster.Broadcast(ctx, req); err != nil {
+	// 		return nil, status.Errorf(codes.Internal, "Could not broadcast slashing object: %v", err)
+	// 	}
+	// }
 
 	return &emptypb.Empty{}, nil
 }
@@ -298,9 +298,9 @@ func (bs *Server) SubmitVoluntaryExit(ctx context.Context, req *ethpbv1.SignedVo
 	}
 
 	bs.VoluntaryExitsPool.InsertVoluntaryExit(ctx, headState, alphaExit)
-	if err := bs.Broadcaster.Broadcast(ctx, alphaExit); err != nil {
-		return nil, status.Errorf(codes.Internal, "Could not broadcast voluntary exit object: %v", err)
-	}
+	// if err := bs.Broadcaster.Broadcast(ctx, alphaExit); err != nil {
+	// 	return nil, status.Errorf(codes.Internal, "Could not broadcast voluntary exit object: %v", err)
+	// }
 
 	return &emptypb.Empty{}, nil
 }
