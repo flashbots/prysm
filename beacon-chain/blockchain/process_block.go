@@ -3,7 +3,6 @@ package blockchain
 import (
 	"context"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/pkg/errors"
@@ -139,20 +138,18 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.ReadOnlySignedB
 		return errors.Wrap(err, "could not validate new payload")
 	}
 	if isValidPayload {
-		notifiedBuild := false
-		if os.Getenv("ALLOW_PRE_MERGE_BLOCK_BUILDING") != "" {
-			if _, err := s.notifyBuildBlock(ctx, postState, postState.Slot()+1, signed.Block(), true); err != nil {
+		if s.buildPreMergeBlocks {
+			if _, err := s.notifyBuildBlock(ctx, postState, postState.Slot()+1, signed.Block()); err != nil {
 				log.WithError(err).Error("Could not notify builder to build block")
 			}
-			notifiedBuild = true
 		}
 
 		if err := s.validateMergeTransitionBlock(ctx, preStateVersion, preStateHeader, signed); err != nil {
 			return err
 		}
 
-		if !notifiedBuild {
-			if _, err := s.notifyBuildBlock(ctx, postState, postState.Slot()+1, signed.Block(), true); err != nil {
+		if !s.buildPreMergeBlocks {
+			if _, err := s.notifyBuildBlock(ctx, postState, postState.Slot()+1, signed.Block()); err != nil {
 				log.WithError(err).Error("Could not notify builder to build block")
 			}
 		}
@@ -417,13 +414,11 @@ func (s *Service) onBlockBatch(ctx context.Context, blks []interfaces.ReadOnlySi
 		return errors.New("batch block signature verification failed")
 	}
 
-	notifiedBuilder := false
-	if os.Getenv("ALLOW_PRE_MERGE_BLOCK_BUILDING") != "" {
+	if s.buildPreMergeBlocks {
 		b := blks[len(blks)-1].Block()
-		if _, err := s.notifyBuildBlock(ctx, preState, b.Slot()+1, b, true); err != nil {
+		if _, err := s.notifyBuildBlock(ctx, preState, b.Slot()+1, b); err != nil {
 			log.WithError(err).Error("Could not notify builder to build block")
 		}
-		notifiedBuilder = true
 	}
 
 	// blocks have been verified, save them and call the engine
@@ -505,8 +500,8 @@ func (s *Service) onBlockBatch(ctx context.Context, blks []interfaces.ReadOnlySi
 		return err
 	}
 
-	if !notifiedBuilder {
-		if _, err := s.notifyBuildBlock(ctx, preState, s.CurrentSlot()+1, lastB.Block(), false); err != nil {
+	if !s.buildPreMergeBlocks {
+		if _, err := s.notifyBuildBlock(ctx, preState, s.CurrentSlot()+1, lastB.Block()); err != nil {
 			log.WithError(err).Error("Could not notify builder to build block")
 		}
 	}
