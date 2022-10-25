@@ -18,8 +18,8 @@ import (
 	payloadattribute "github.com/prysmaticlabs/prysm/v3/consensus-types/payload-attribute"
 	"github.com/prysmaticlabs/prysm/v3/consensus-types/primitives"
 	"github.com/prysmaticlabs/prysm/v3/encoding/bytesutil"
-	enginev1 "github.com/prysmaticlabs/prysm/v3/proto/engine/v1"
 	"github.com/prysmaticlabs/prysm/v3/proto/builder"
+	enginev1 "github.com/prysmaticlabs/prysm/v3/proto/engine/v1"
 	"github.com/prysmaticlabs/prysm/v3/time/slots"
 	"github.com/sirupsen/logrus"
 	"go.opencensus.io/trace"
@@ -249,7 +249,7 @@ func (s *Service) notifyNewPayload(ctx context.Context, postStateVersion int,
 }
 
 // notifyBuildBlock signals the builder to build the next block.
-func (s *Service) notifyBuildBlock(ctx context.Context, st state.BeaconState, slot types.Slot, headBlock interfaces.BeaconBlock, process bool) (bool, error) {
+func (s *Service) notifyBuildBlock(ctx context.Context, st state.BeaconState, slot primitives.Slot, headBlock interfaces.ReadOnlyBeaconBlock) (bool, error) {
 	ctx, span := trace.StartSpan(ctx, "blockChain.notifyBuildBlock")
 	defer span.End()
 
@@ -269,13 +269,13 @@ func (s *Service) notifyBuildBlock(ctx context.Context, st state.BeaconState, sl
 	}
 
 	// Get previous randao.
-	if process {
-		st = st.Copy()
-		st, err = transition.ProcessSlotsIfPossible(ctx, st, slot)
+	if slot > st.Slot() {
+		st, err = transition.ProcessSlotsIfPossible(ctx, st.Copy(), slot)
 		if err != nil {
 			return false, err
 		}
 	}
+
 	prevRando, err := helpers.RandaoMix(st, time.CurrentEpoch(st))
 	if err != nil {
 		return false, err
