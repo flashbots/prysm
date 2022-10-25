@@ -3,7 +3,6 @@ package blockchain
 import (
 	"context"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/pkg/errors"
@@ -132,20 +131,18 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.SignedBeaconBlo
 		return errors.Wrap(err, "could not validate new payload")
 	}
 	if isValidPayload {
-		notifiedBuild := false
-		if os.Getenv("ALLOW_PRE_MERGE_BLOCK_BUILDING") != "" {
-			if _, err := s.notifyBuildBlock(ctx, postState, postState.Slot()+1, signed.Block(), true); err != nil {
+		if s.buildPreMergeBlocks {
+			if _, err := s.notifyBuildBlock(ctx, postState, postState.Slot()+1, signed.Block()); err != nil {
 				log.WithError(err).Error("Could not notify builder to build block")
 			}
-			notifiedBuild = true
 		}
 
 		if err := s.validateMergeTransitionBlock(ctx, preStateVersion, preStateHeader, signed); err != nil {
 			return err
 		}
 
-		if !notifiedBuild {
-			if _, err := s.notifyBuildBlock(ctx, postState, postState.Slot()+1, signed.Block(), true); err != nil {
+		if !s.buildPreMergeBlocks {
+			if _, err := s.notifyBuildBlock(ctx, postState, postState.Slot()+1, signed.Block()); err != nil {
 				log.WithError(err).Error("Could not notify builder to build block")
 			}
 		}
@@ -399,13 +396,11 @@ func (s *Service) onBlockBatch(ctx context.Context, blks []interfaces.SignedBeac
 		return errors.New("batch block signature verification failed")
 	}
 
-	notifiedBuilder := false
-	if os.Getenv("ALLOW_PRE_MERGE_BLOCK_BUILDING") != "" {
+	if s.buildPreMergeBlocks {
 		b := blks[len(blks)-1].Block()
-		if _, err := s.notifyBuildBlock(ctx, preState, b.Slot()+1, b, true); err != nil {
+		if _, err := s.notifyBuildBlock(ctx, preState, b.Slot()+1, b); err != nil {
 			log.WithError(err).Error("Could not notify builder to build block")
 		}
-		notifiedBuilder = true
 	}
 
 	// blocks have been verified, save them and call the engine
@@ -487,8 +482,8 @@ func (s *Service) onBlockBatch(ctx context.Context, blks []interfaces.SignedBeac
 		return err
 	}
 
-	if !notifiedBuilder {
-		if _, err := s.notifyBuildBlock(ctx, preState, s.CurrentSlot()+1, lastB.Block(), false); err != nil {
+	if !s.buildPreMergeBlocks {
+		if _, err := s.notifyBuildBlock(ctx, preState, s.CurrentSlot()+1, lastB.Block()); err != nil {
 			log.WithError(err).Error("Could not notify builder to build block")
 		}
 	}
@@ -698,11 +693,9 @@ func (s *Service) fillMissingPayloadIDRoutine(ctx context.Context, stateFeed *ev
 				if !atHalfSlot(ti) {
 					continue
 				}
-				// Head root should be empty when retrieving proposer index for the next slot.
 				_, id, has := s.cfg.ProposerSlotIndexCache.GetProposerPayloadIDs(s.CurrentSlot()+1, [32]byte{} /* head root */)
-				notified := has && id == [8]byte{}
 				// There exists proposer for next slot, but we haven't called fcu w/ payload attribute yet.
-				if notified {
+				if has && id == [8]byte{} {
 					headBlock, err := s.headBlock()
 					if err != nil {
 						log.WithError(err).Error("Could not get head block")
@@ -722,7 +715,7 @@ func (s *Service) fillMissingPayloadIDRoutine(ctx context.Context, stateFeed *ev
 				if err != nil {
 					log.WithError(err).Error("Could not get head block")
 				} else {
-					if _, err := s.notifyBuildBlock(ctx, s.headState(ctx), s.CurrentSlot()+1, headBlock.Block(), !notified); err != nil {
+					if _, err := s.notifyBuildBlock(ctx, s.headState(ctx), s.CurrentSlot()+1, headBlock.Block()); err != nil {
 						log.WithError(err).Error("Could not notify builder to build block")
 					}
 				}

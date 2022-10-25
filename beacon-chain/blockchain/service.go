@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"os"
 	"runtime"
 	"sync"
 	"time"
@@ -58,6 +59,7 @@ type Service struct {
 	justifiedBalances       *stateBalanceCache
 	wsVerifier              *WeakSubjectivityVerifier
 	processAttestationsLock sync.Mutex
+	buildPreMergeBlocks     bool
 }
 
 // config options for the service.
@@ -94,6 +96,7 @@ func NewService(ctx context.Context, opts ...Option) (*Service, error) {
 		checkpointStateCache: cache.NewCheckpointStateCache(),
 		initSyncBlocks:       make(map[[32]byte]interfaces.SignedBeaconBlock),
 		cfg:                  &config{},
+		buildPreMergeBlocks:  os.Getenv("ALLOW_PRE_MERGE_BLOCK_BUILDING") == "1",
 	}
 	for _, opt := range opts {
 		if err := opt(srv); err != nil {
