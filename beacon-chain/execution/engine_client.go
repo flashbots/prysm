@@ -305,7 +305,7 @@ func (s *Service) PayloadAttributes(ctx context.Context, attrs *builder.BuilderP
 	defer func() {
 		payloadAttributesLatency.Observe(float64(time.Since(start).Milliseconds()))
 	}()
-	d := time.Now().Add(payloadAndForkchoiceUpdatedTimeout)
+	d := time.Now().Add(time.Duration(params.BeaconConfig().ExecutionEngineTimeoutValue) * time.Second)
 	ctx, cancel := context.WithDeadline(ctx, d)
 	defer cancel()
 	var result interface{}

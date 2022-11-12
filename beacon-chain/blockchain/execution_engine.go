@@ -307,37 +307,6 @@ func (s *Service) notifyBuildBlock(ctx context.Context, st state.BeaconState, sl
 	return true, err
 }
 
-// optimisticCandidateBlock returns an error if this block can't be optimistically synced.
-// It replaces boolean in spec code with `errNotOptimisticCandidate`.
-//
-// Spec pseudocode definition:
-// def is_optimistic_candidate_block(opt_store: OptimisticStore, current_slot: Slot, block: BeaconBlock) -> bool:
-//    if is_execution_block(opt_store.blocks[block.parent_root]):
-//        return True
-//
-//    if block.slot + SAFE_SLOTS_TO_IMPORT_OPTIMISTICALLY <= current_slot:
-//        return True
-//
-//    return False
-func (s *Service) optimisticCandidateBlock(ctx context.Context, blk interfaces.BeaconBlock) error {
-	if blk.Slot()+params.BeaconConfig().SafeSlotsToImportOptimistically <= s.CurrentSlot() {
-		return nil
-	}
-	parent, err := s.getBlock(ctx, blk.ParentRoot())
-	if err != nil {
-		return err
-	}
-	parentIsExecutionBlock, err := blocks.IsExecutionBlock(parent.Block().Body())
-	if err != nil {
-		return err
-	}
-	if parentIsExecutionBlock {
-		return nil
-	}
-
-	return errNotOptimisticCandidate
-}
-
 // getPayloadAttributes returns the payload attributes for the given state and slot.
 // The attribute is required to initiate a payload build process in the context of an `engine_forkchoiceUpdated` call.
 func (s *Service) getPayloadAttribute(ctx context.Context, st state.BeaconState, slot types.Slot) (bool, *enginev1.PayloadAttributes, types.ValidatorIndex, error) {
