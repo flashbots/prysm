@@ -13,7 +13,7 @@ import (
 	"github.com/prysmaticlabs/prysm/v3/beacon-chain/core/blocks"
 	"github.com/prysmaticlabs/prysm/v3/beacon-chain/core/signing"
 	"github.com/prysmaticlabs/prysm/v3/beacon-chain/core/transition/interop"
-	"github.com/prysmaticlabs/prysm/v3/beacon-chain/db/kv"
+	// "github.com/prysmaticlabs/prysm/v3/beacon-chain/db/kv"
 	"github.com/prysmaticlabs/prysm/v3/config/params"
 	consensusblocks "github.com/prysmaticlabs/prysm/v3/consensus-types/blocks"
 	coreBlock "github.com/prysmaticlabs/prysm/v3/consensus-types/blocks"
@@ -441,13 +441,13 @@ func (vs *Server) validatorRegistered(ctx context.Context, id types.ValidatorInd
 	if vs.BeaconDB == nil {
 		return false, errors.New("nil beacon db")
 	}
-	_, err := vs.BeaconDB.RegistrationByValidatorID(ctx, id)
-	switch {
-	case errors.Is(err, kv.ErrNotFoundFeeRecipient):
-		return false, nil
-	case err != nil:
-		return false, err
-	}
+	// _, err := vs.BeaconDB.RegistrationByValidatorID(ctx, id)
+	// switch {
+	// case errors.Is(err, kv.ErrNotFoundFeeRecipient):
+	// 	return false, nil
+	// case err != nil:
+	// 	return false, err
+	// }
 	return true, nil
 }
 
