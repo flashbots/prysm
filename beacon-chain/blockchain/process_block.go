@@ -759,7 +759,7 @@ func (s *Service) fillMissingBlockPayloadId(ctx context.Context, ti time.Time) e
 	if err != nil {
 		log.WithError(err).Error("Could not get head block")
 	} else {
-		if _, err := s.notifyBuildBlock(ctx, s.headState(ctx), s.CurrentSlot() + 1, headBlock.Block(), !notified); err != nil {
+		if _, err := s.notifyBuildBlock(ctx, s.headState(ctx), s.CurrentSlot() + 1, headBlock.Block()); err != nil {
 			log.WithError(err).Error("Could not notify builder to build block")
 		}
 	}
