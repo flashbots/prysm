@@ -731,6 +731,11 @@ func (s *Service) fillMissingBlockPayloadId(ctx context.Context) error {
 		s.headLock.RUnlock()
 		return err
 	}
+
+	if _, err := s.notifyBuildBlock(ctx, s.headState(ctx), s.CurrentSlot() + 1, headBlock.Block()); err != nil {
+		log.WithError(err).Error("Could not notify builder to build block")
+	}
+	
 	headState := s.headState(ctx)
 	headRoot := s.headRoot()
 	s.headLock.RUnlock()

@@ -1008,13 +1008,6 @@ func (x *PayloadAttributesV2) GetWithdrawals() []*Withdrawal {
 	return nil
 }
 
-func (x *BuilderPayloadAttributes) GetBlockHash() []byte {
-	if x != nil {
-		return x.BlockHash
-	}
-	return nil
-}
-
 type PayloadStatus struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
