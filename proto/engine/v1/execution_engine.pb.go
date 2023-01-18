@@ -78,7 +78,7 @@ func (x PayloadStatus_Status) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use PayloadStatus_Status.Descriptor instead.
 func (PayloadStatus_Status) EnumDescriptor() ([]byte, []int) {
-	return file_proto_engine_v1_execution_engine_proto_rawDescGZIP(), []int{6, 0}
+	return file_proto_engine_v1_execution_engine_proto_rawDescGZIP(), []int{7, 0}
 }
 
 type ExecutionPayload struct {
@@ -953,13 +953,6 @@ func (x *PayloadAttributesV2) GetWithdrawals() []*Withdrawal {
 	return nil
 }
 
-func (x *BuilderPayloadAttributes) GetBlockHash() []byte {
-	if x != nil {
-		return x.BlockHash
-	}
-	return nil
-}
-
 type PayloadStatus struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -973,7 +966,7 @@ type PayloadStatus struct {
 func (x *PayloadStatus) Reset() {
 	*x = PayloadStatus{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_proto_engine_v1_execution_engine_proto_msgTypes[6]
+		mi := &file_proto_engine_v1_execution_engine_proto_msgTypes[7]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -986,7 +979,7 @@ func (x *PayloadStatus) String() string {
 func (*PayloadStatus) ProtoMessage() {}
 
 func (x *PayloadStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_engine_v1_execution_engine_proto_msgTypes[6]
+	mi := &file_proto_engine_v1_execution_engine_proto_msgTypes[7]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -999,7 +992,7 @@ func (x *PayloadStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PayloadStatus.ProtoReflect.Descriptor instead.
 func (*PayloadStatus) Descriptor() ([]byte, []int) {
-	return file_proto_engine_v1_execution_engine_proto_rawDescGZIP(), []int{6}
+	return file_proto_engine_v1_execution_engine_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *PayloadStatus) GetStatus() PayloadStatus_Status {
@@ -1036,7 +1029,7 @@ type ForkchoiceState struct {
 func (x *ForkchoiceState) Reset() {
 	*x = ForkchoiceState{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_proto_engine_v1_execution_engine_proto_msgTypes[7]
+		mi := &file_proto_engine_v1_execution_engine_proto_msgTypes[8]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1049,7 +1042,7 @@ func (x *ForkchoiceState) String() string {
 func (*ForkchoiceState) ProtoMessage() {}
 
 func (x *ForkchoiceState) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_engine_v1_execution_engine_proto_msgTypes[7]
+	mi := &file_proto_engine_v1_execution_engine_proto_msgTypes[8]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1062,7 +1055,7 @@ func (x *ForkchoiceState) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ForkchoiceState.ProtoReflect.Descriptor instead.
 func (*ForkchoiceState) Descriptor() ([]byte, []int) {
-	return file_proto_engine_v1_execution_engine_proto_rawDescGZIP(), []int{7}
+	return file_proto_engine_v1_execution_engine_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *ForkchoiceState) GetHeadBlockHash() []byte {
@@ -1100,7 +1093,7 @@ type Withdrawal struct {
 func (x *Withdrawal) Reset() {
 	*x = Withdrawal{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_proto_engine_v1_execution_engine_proto_msgTypes[8]
+		mi := &file_proto_engine_v1_execution_engine_proto_msgTypes[9]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1113,7 +1106,7 @@ func (x *Withdrawal) String() string {
 func (*Withdrawal) ProtoMessage() {}
 
 func (x *Withdrawal) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_engine_v1_execution_engine_proto_msgTypes[8]
+	mi := &file_proto_engine_v1_execution_engine_proto_msgTypes[9]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1126,7 +1119,7 @@ func (x *Withdrawal) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Withdrawal.ProtoReflect.Descriptor instead.
 func (*Withdrawal) Descriptor() ([]byte, []int) {
-	return file_proto_engine_v1_execution_engine_proto_rawDescGZIP(), []int{8}
+	return file_proto_engine_v1_execution_engine_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *Withdrawal) GetIndex() uint64 {
@@ -1698,7 +1691,7 @@ func file_proto_engine_v1_execution_engine_proto_init() {
 				return nil
 			}
 		}
-		file_proto_engine_v1_execution_engine_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+		file_proto_engine_v1_execution_engine_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ForkchoiceState); i {
 			case 0:
 				return &v.state
@@ -1710,7 +1703,7 @@ func file_proto_engine_v1_execution_engine_proto_init() {
 				return nil
 			}
 		}
-		file_proto_engine_v1_execution_engine_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
+		file_proto_engine_v1_execution_engine_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Withdrawal); i {
 			case 0:
 				return &v.state
