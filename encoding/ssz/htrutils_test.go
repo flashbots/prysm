@@ -212,7 +212,7 @@ func TestWithrawalSliceRoot(t *testing.T) {
 		},
 		{
 			name: "non-empty",
-			input: []*enginev1.Withdrawal{&enginev1.Withdrawal{
+			input: []*enginev1.Withdrawal{{
 				Index:          123,
 				ValidatorIndex: 123123,
 				Address:        []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0},

@@ -58,7 +58,6 @@ type Service struct {
 	initSyncBlocksLock      sync.RWMutex
 	wsVerifier              *WeakSubjectivityVerifier
 	processAttestationsLock sync.Mutex
-	buildPreMergeBlocks     bool
 }
 
 // config options for the service.
