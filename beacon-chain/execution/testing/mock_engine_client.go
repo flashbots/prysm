@@ -49,6 +49,11 @@ func (e *EngineClient) PayloadAttributes(_ context.Context, _ *builder.BuilderPa
 	return e.NewPayloadResp, e.ErrNewPayload
 }
 
+// PayloadAttributesV2 --
+func (e *EngineClient) PayloadAttributesV2(_ context.Context, _ *builder.BuilderPayloadAttributesV2) ([]byte, error) {
+	return e.NewPayloadResp, e.ErrNewPayload
+}
+
 // NewPayload --
 func (e *EngineClient) NewPayload(_ context.Context, _ interfaces.ExecutionData) ([]byte, error) {
 	return e.NewPayloadResp, e.ErrNewPayload
