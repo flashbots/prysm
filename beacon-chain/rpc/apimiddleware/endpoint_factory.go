@@ -110,6 +110,9 @@ func (_ *BeaconEndpointFactory) Create(path string) (*apimiddleware.Endpoint, er
 	case "/eth/v1/beacon/states/{state_id}/randao":
 		endpoint.RequestQueryParams = []apimiddleware.QueryParam{{Name: "epoch"}}
 		endpoint.GetResponse = &RandaoResponseJson{}
+	case "/eth/v1/beacon/states/{state_id}/withdrawals":
+		endpoint.RequestQueryParams = []apimiddleware.QueryParam{{Name: "slot"}}
+		endpoint.GetResponse = &WithdrawalsResponseJson{}
 	case "/eth/v1/beacon/headers":
 		endpoint.RequestQueryParams = []apimiddleware.QueryParam{{Name: "slot"}, {Name: "parent_root", Hex: true}}
 		endpoint.GetResponse = &BlockHeadersResponseJson{}
