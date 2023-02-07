@@ -144,6 +144,12 @@ service BeaconChain {
     };
   }
 
+  rpc GetWithdrawals(v2.WithdrawalsRequest) returns (v2.WithdrawalsResponse) {
+    option (google.api.http) = {
+      get: "/internal/eth/v1/beacon/states/{state_id}/withdrawals"
+    };
+  }
+
   // Beacon blocks API related endpoints.
 
   // ListBlockHeaders retrieves block headers matching given query. By default it will fetch current head slot blocks.
