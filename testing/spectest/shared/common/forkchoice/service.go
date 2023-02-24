@@ -122,3 +122,7 @@ func (m *engineMock) GetTerminalBlockHash(context.Context, uint64) ([]byte, bool
 func (m *engineMock) PayloadAttributes(ctx context.Context, attrs *builder.BuilderPayloadAttributes) ([]byte, error) {
 	return nil, nil
 }
+
+func (m *engineMock) PayloadAttributesV2(ctx context.Context, attrs *builder.BuilderPayloadAttributesV2) ([]byte, error) {
+	return nil, nil
+}
