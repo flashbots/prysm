@@ -319,6 +319,9 @@ func (s *Service) notifyBuildBlock(ctx context.Context, st state.BeaconState, sl
 		if err != nil {
 			return false, err
 		}
+	default:
+		log.WithField("version", st.Version()).Error("Could not get builder payload attributes due to unknown state version")
+		return false, errors.New("unknown state version when getting builder payload attributes")
 	}
 
 	log.WithFields(logrus.Fields{
