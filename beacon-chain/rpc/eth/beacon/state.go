@@ -204,6 +204,42 @@ func (bs *Server) GetRandao(ctx context.Context, req *eth2.RandaoRequest) (*eth2
 	}, nil
 }
 
+func (bs *Server) GetWithdrawals(ctx context.Context, req *eth2.WithdrawalsRequest) (*eth2.WithdrawalsResponse, error) {
+	ctx, span := trace.StartSpan(ctx, "beacon.GetWithdrawals")
+	defer span.End()
+
+	st, err := bs.StateFetcher.State(ctx, req.StateId)
+	if err != nil {
+		return nil, helpers.PrepareStateFetchGRPCError(err)
+	}
+
+	if st.Version() != version.Capella {
+		return nil, status.Errorf(codes.InvalidArgument, "Withdrawals not enabled before capella")
+	}
+
+	withdrawals, err := st.ExpectedWithdrawals()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "Could not get withdrawals at state: %v", err)
+	}
+
+	isOptimistic, err := helpers.IsOptimistic(ctx, st, bs.OptimisticModeFetcher)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "Could not check if slot's block is optimistic: %v", err)
+	}
+
+	blockRoot, err := st.LatestBlockHeader().HashTreeRoot()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "Could not calculate root of latest block header")
+	}
+	isFinalized := bs.FinalizationFetcher.IsFinalized(ctx, blockRoot)
+
+	return &eth2.WithdrawalsResponse{
+		Data:                &eth2.WithdrawalsResponse_Withdrawals{Withdrawals: withdrawals},
+		ExecutionOptimistic: isOptimistic,
+		Finalized:           isFinalized,
+	}, nil
+}
+
 func (bs *Server) stateFromRequest(ctx context.Context, req *stateRequest) (state.BeaconState, error) {
 	if req.epoch != nil {
 		slot, err := slots.EpochStart(*req.epoch)

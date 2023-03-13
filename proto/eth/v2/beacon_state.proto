@@ -234,3 +234,19 @@ message RandaoResponse {
     bytes randao = 1 [(ethereum.eth.ext.ssz_size) = "32"];
   }
 }
+
+
+message WithdrawalsRequest {
+  bytes state_id = 1;
+  optional uint64 slot = 2 [(ethereum.eth.ext.cast_type) = "github.com/prysmaticlabs/prysm/v3/consensus-types/primitives.Slot"];
+}
+
+message WithdrawalsResponse {
+  Withdrawals data = 1;
+  bool execution_optimistic = 2;
+  bool finalized = 3;
+
+  message Withdrawals {
+   repeated engine.v1.Withdrawal withdrawals = 15 [(ethereum.eth.ext.ssz_max) = "withdrawal.size"]; // New in Capella.
+  }
+}

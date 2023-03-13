@@ -101,6 +101,14 @@ type RandaoResponseJson struct {
 	Finalized           bool `json:"finalized"`
 }
 
+type WithdrawalsResponseJson struct {
+	Data *struct {
+		Withdrawals []*WithdrawalJson `json:"withdrawals" hex:"true"`
+	} `json:"data"`
+	ExecutionOptimistic bool `json:"execution_optimistic"`
+	Finalized           bool `json:"finalized"`
+}
+
 type BlockHeadersResponseJson struct {
 	Data                []*BlockHeaderContainerJson `json:"data"`
 	ExecutionOptimistic bool                        `json:"execution_optimistic"`

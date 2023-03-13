@@ -287,16 +287,40 @@ func (s *Service) notifyBuildBlock(ctx context.Context, st state.BeaconState, sl
 		return false, err
 	}
 
-	attr := &builder.BuilderPayloadAttributes{
-		Timestamp:  uint64(t.Unix()),
-		Slot:       slot,
-		PrevRandao: prevRando,
-		BlockHash:  block.BlockHash(),
-	}
+	switch st.Version() {
+	case version.Capella:
+		withdrawals, err := st.ExpectedWithdrawals()
+		if err != nil {
+			log.WithError(err).Error("Could not get expected withdrawals to get payload attribute")
+			return false, err
+		}
+		attr := &builder.BuilderPayloadAttributesV2{
+			Timestamp:   uint64(t.Unix()),
+			Slot:        slot,
+			PrevRandao:  prevRando,
+			BlockHash:   block.BlockHash(),
+			Withdrawals: withdrawals,
+		}
 
-	_, err = s.cfg.ExecutionEngineCaller.PayloadAttributes(ctx, attr)
-	if err != nil {
-		return false, err
+		_, err = s.cfg.ExecutionEngineCaller.PayloadAttributesV2(ctx, attr)
+		if err != nil {
+			return false, err
+		}
+	case version.Bellatrix:
+		attr := &builder.BuilderPayloadAttributes{
+			Timestamp:  uint64(t.Unix()),
+			Slot:       slot,
+			PrevRandao: prevRando,
+			BlockHash:  block.BlockHash(),
+		}
+
+		_, err = s.cfg.ExecutionEngineCaller.PayloadAttributes(ctx, attr)
+		if err != nil {
+			return false, err
+		}
+	default:
+		log.WithField("version", st.Version()).Error("Could not get builder payload attributes due to unknown state version")
+		return false, errors.New("unknown state version when getting builder payload attributes")
 	}
 
 	log.WithFields(logrus.Fields{
@@ -344,7 +368,8 @@ func (s *Service) getPayloadAttribute(ctx context.Context, st state.BeaconState,
 				"Please refer to our documentation for instructions")
 		}
 	case err != nil:
-		return false, nil, 0, errors.Wrap(err, "could not get fee recipient in db")
+		log.WithError(err).Error("Could not get fee recipient to get payload attribute")
+		return false, emptyAttri, 0
 	default:
 		feeRecipient = recipient
 	}

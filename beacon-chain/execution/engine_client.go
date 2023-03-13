@@ -92,6 +92,7 @@ type EngineCaller interface {
 	ExecutionBlockByHash(ctx context.Context, hash common.Hash, withTxs bool) (*pb.ExecutionBlock, error)
 	GetTerminalBlockHash(ctx context.Context, transitionTime uint64) ([]byte, bool, error)
 	PayloadAttributes(ctx context.Context, attrs *builder.BuilderPayloadAttributes) ([]byte, error)
+	PayloadAttributesV2(ctx context.Context, attrs *builder.BuilderPayloadAttributesV2) ([]byte, error)
 }
 
 var EmptyBlockHash = errors.New("Block hash is empty 0x0000...")
@@ -367,6 +368,26 @@ func (s *Service) GetTerminalBlockHash(ctx context.Context, transitionTime uint6
 // PayloadAttributes sends payload attributes to a block builder to trigger building of a block
 func (s *Service) PayloadAttributes(ctx context.Context, attrs *builder.BuilderPayloadAttributes) ([]byte, error) {
 	ctx, span := trace.StartSpan(ctx, "powchain.builder-api-client.PayloadAttributes")
+	defer span.End()
+	start := time.Now()
+	defer func() {
+		payloadAttributesLatency.Observe(float64(time.Since(start).Milliseconds()))
+	}()
+	d := time.Now().Add(time.Duration(params.BeaconConfig().ExecutionEngineTimeoutValue) * time.Second)
+	ctx, cancel := context.WithDeadline(ctx, d)
+	defer cancel()
+	var result interface{}
+	err := s.rpcClient.CallContext(ctx, result, PayloadAttributesMethod, attrs)
+	if err != nil {
+		return nil, handleRPCError(err)
+	}
+
+	return nil, nil
+}
+
+// PayloadAttributesV2 sends payload attributes to a block builder to trigger building of a block
+func (s *Service) PayloadAttributesV2(ctx context.Context, attrs *builder.BuilderPayloadAttributesV2) ([]byte, error) {
+	ctx, span := trace.StartSpan(ctx, "powchain.builder-api-client.PayloadAttributesV2")
 	defer span.End()
 	start := time.Now()
 	defer func() {

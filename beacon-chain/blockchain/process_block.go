@@ -138,20 +138,12 @@ func (s *Service) onBlock(ctx context.Context, signed interfaces.ReadOnlySignedB
 		return errors.Wrap(err, "could not validate new payload")
 	}
 	if isValidPayload {
-		if s.buildPreMergeBlocks {
-			if _, err := s.notifyBuildBlock(ctx, postState, postState.Slot()+1, signed.Block()); err != nil {
-				log.WithError(err).Error("Could not notify builder to build block")
-			}
-		}
-
 		if err := s.validateMergeTransitionBlock(ctx, preStateVersion, preStateHeader, signed); err != nil {
 			return err
 		}
 
-		if !s.buildPreMergeBlocks {
-			if _, err := s.notifyBuildBlock(ctx, postState, postState.Slot()+1, signed.Block()); err != nil {
-				log.WithError(err).Error("Could not notify builder to build block")
-			}
+		if _, err := s.notifyBuildBlock(ctx, postState, postState.Slot()+1, signed.Block()); err != nil {
+			log.WithError(err).Error("Could not notify builder to build block")
 		}
 	}
 	if err := s.savePostStateInfo(ctx, blockRoot, signed, postState); err != nil {
@@ -414,13 +406,6 @@ func (s *Service) onBlockBatch(ctx context.Context, blks []interfaces.ReadOnlySi
 		return errors.New("batch block signature verification failed")
 	}
 
-	if s.buildPreMergeBlocks {
-		b := blks[len(blks)-1].Block()
-		if _, err := s.notifyBuildBlock(ctx, preState, b.Slot()+1, b); err != nil {
-			log.WithError(err).Error("Could not notify builder to build block")
-		}
-	}
-
 	// blocks have been verified, save them and call the engine
 	pendingNodes := make([]*forkchoicetypes.BlockAndCheckpoints, len(blks))
 	var isValidPayload bool
@@ -500,10 +485,8 @@ func (s *Service) onBlockBatch(ctx context.Context, blks []interfaces.ReadOnlySi
 		return err
 	}
 
-	if !s.buildPreMergeBlocks {
-		if _, err := s.notifyBuildBlock(ctx, preState, s.CurrentSlot()+1, lastB.Block()); err != nil {
-			log.WithError(err).Error("Could not notify builder to build block")
-		}
+	if _, err := s.notifyBuildBlock(ctx, preState, s.CurrentSlot()+1, lastB.Block()); err != nil {
+		log.WithError(err).Error("Could not notify builder to build block")
 	}
 
 	return s.saveHeadNoDB(ctx, lastB, lastBR, preState)
@@ -732,10 +715,10 @@ func (s *Service) fillMissingBlockPayloadId(ctx context.Context) error {
 		return err
 	}
 
-	if _, err := s.notifyBuildBlock(ctx, s.headState(ctx), s.CurrentSlot() + 1, headBlock.Block()); err != nil {
+	if _, err := s.notifyBuildBlock(ctx, s.headState(ctx), s.CurrentSlot()+1, headBlock.Block()); err != nil {
 		log.WithError(err).Error("Could not notify builder to build block")
 	}
-	
+
 	headState := s.headState(ctx)
 	headRoot := s.headRoot()
 	s.headLock.RUnlock()
