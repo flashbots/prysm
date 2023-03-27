@@ -1330,7 +1330,7 @@ type WithdrawalsRequest struct {
 	unknownFields protoimpl.UnknownFields
 
 	StateId []byte                                                             `protobuf:"bytes,1,opt,name=state_id,json=stateId,proto3" json:"state_id,omitempty"`
-	Slot    *github_com_prysmaticlabs_prysm_v3_consensus_types_primitives.Slot `protobuf:"varint,2,opt,name=slot,proto3,oneof" json:"slot,omitempty" cast-type:"github.com/prysmaticlabs/prysm/v3/consensus-types/primitives.Slot"`
+	Slot    *github_com_prysmaticlabs_prysm_v4_consensus_types_primitives.Slot `protobuf:"varint,2,opt,name=slot,proto3,oneof" json:"slot,omitempty" cast-type:"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives.Slot"`
 }
 
 func (x *WithdrawalsRequest) Reset() {
@@ -1372,11 +1372,11 @@ func (x *WithdrawalsRequest) GetStateId() []byte {
 	return nil
 }
 
-func (x *WithdrawalsRequest) GetSlot() github_com_prysmaticlabs_prysm_v3_consensus_types_primitives.Slot {
+func (x *WithdrawalsRequest) GetSlot() github_com_prysmaticlabs_prysm_v4_consensus_types_primitives.Slot {
 	if x != nil && x.Slot != nil {
 		return *x.Slot
 	}
-	return github_com_prysmaticlabs_prysm_v3_consensus_types_primitives.Slot(0)
+	return github_com_prysmaticlabs_prysm_v4_consensus_types_primitives.Slot(0)
 }
 
 type WithdrawalsResponse struct {

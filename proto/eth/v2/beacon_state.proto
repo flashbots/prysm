@@ -238,7 +238,7 @@ message RandaoResponse {
 
 message WithdrawalsRequest {
   bytes state_id = 1;
-  optional uint64 slot = 2 [(ethereum.eth.ext.cast_type) = "github.com/prysmaticlabs/prysm/v3/consensus-types/primitives.Slot"];
+  optional uint64 slot = 2 [(ethereum.eth.ext.cast_type) = "github.com/prysmaticlabs/prysm/v4/consensus-types/primitives.Slot"];
 }
 
 message WithdrawalsResponse {

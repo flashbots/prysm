@@ -18,6 +18,7 @@ import (
 	payloadattribute "github.com/prysmaticlabs/prysm/v4/consensus-types/payload-attribute"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
 	"github.com/prysmaticlabs/prysm/v4/encoding/bytesutil"
+	"github.com/prysmaticlabs/prysm/v4/proto/builder"
 	enginev1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 	"github.com/prysmaticlabs/prysm/v4/runtime/version"
 	"github.com/prysmaticlabs/prysm/v4/time/slots"
@@ -296,8 +297,8 @@ func (s *Service) notifyBuildBlock(ctx context.Context, st state.BeaconState, sl
 		}
 		attr := &builder.BuilderPayloadAttributesV2{
 			Timestamp:   uint64(t.Unix()),
-			Slot:        slot,
 			PrevRandao:  prevRando,
+			Slot:        slot,
 			BlockHash:   block.BlockHash(),
 			Withdrawals: withdrawals,
 		}

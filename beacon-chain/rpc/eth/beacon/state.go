@@ -13,6 +13,7 @@ import (
 	ethpb "github.com/prysmaticlabs/prysm/v4/proto/eth/v1"
 	eth2 "github.com/prysmaticlabs/prysm/v4/proto/eth/v2"
 	eth "github.com/prysmaticlabs/prysm/v4/proto/prysm/v1alpha1"
+	"github.com/prysmaticlabs/prysm/v4/runtime/version"
 	"github.com/prysmaticlabs/prysm/v4/time/slots"
 	"go.opencensus.io/trace"
 	"google.golang.org/grpc/codes"
@@ -222,7 +223,7 @@ func (bs *Server) GetWithdrawals(ctx context.Context, req *eth2.WithdrawalsReque
 		return nil, status.Errorf(codes.Internal, "Could not get withdrawals at state: %v", err)
 	}
 
-	isOptimistic, err := helpers.IsOptimistic(ctx, st, bs.OptimisticModeFetcher)
+	isOptimistic, err := helpers.IsOptimistic(ctx, req.StateId, bs.OptimisticModeFetcher, bs.StateFetcher, bs.ChainInfoFetcher, bs.BeaconDB)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Could not check if slot's block is optimistic: %v", err)
 	}

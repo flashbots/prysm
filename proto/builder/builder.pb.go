@@ -10,9 +10,9 @@ import (
 	reflect "reflect"
 	sync "sync"
 
-	github_com_prysmaticlabs_prysm_v3_consensus_types_primitives "github.com/prysmaticlabs/prysm/v3/consensus-types/primitives"
-	v1 "github.com/prysmaticlabs/prysm/v3/proto/engine/v1"
-	_ "github.com/prysmaticlabs/prysm/v3/proto/eth/ext"
+	github_com_prysmaticlabs_prysm_v4_consensus_types_primitives "github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
+	v1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
+	_ "github.com/prysmaticlabs/prysm/v4/proto/eth/ext"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
@@ -31,7 +31,7 @@ type BuilderPayloadAttributes struct {
 
 	Timestamp  uint64                                                            `protobuf:"varint,1,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
 	PrevRandao []byte                                                            `protobuf:"bytes,2,opt,name=prev_randao,json=prevRandao,proto3" json:"prev_randao,omitempty" ssz-size:"32"`
-	Slot       github_com_prysmaticlabs_prysm_v3_consensus_types_primitives.Slot `protobuf:"varint,3,opt,name=slot,proto3" json:"slot,omitempty" cast-type:"github.com/prysmaticlabs/prysm/v3/consensus-types/primitives.Slot"`
+	Slot       github_com_prysmaticlabs_prysm_v4_consensus_types_primitives.Slot `protobuf:"varint,3,opt,name=slot,proto3" json:"slot,omitempty" cast-type:"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives.Slot"`
 	BlockHash  []byte                                                            `protobuf:"bytes,4,opt,name=block_hash,json=blockHash,proto3" json:"block_hash,omitempty" ssz-size:"32"`
 }
 
@@ -81,11 +81,11 @@ func (x *BuilderPayloadAttributes) GetPrevRandao() []byte {
 	return nil
 }
 
-func (x *BuilderPayloadAttributes) GetSlot() github_com_prysmaticlabs_prysm_v3_consensus_types_primitives.Slot {
+func (x *BuilderPayloadAttributes) GetSlot() github_com_prysmaticlabs_prysm_v4_consensus_types_primitives.Slot {
 	if x != nil {
 		return x.Slot
 	}
-	return github_com_prysmaticlabs_prysm_v3_consensus_types_primitives.Slot(0)
+	return github_com_prysmaticlabs_prysm_v4_consensus_types_primitives.Slot(0)
 }
 
 func (x *BuilderPayloadAttributes) GetBlockHash() []byte {
@@ -102,7 +102,7 @@ type BuilderPayloadAttributesV2 struct {
 
 	Timestamp   uint64                                                            `protobuf:"varint,1,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
 	PrevRandao  []byte                                                            `protobuf:"bytes,2,opt,name=prev_randao,json=prevRandao,proto3" json:"prev_randao,omitempty" ssz-size:"32"`
-	Slot        github_com_prysmaticlabs_prysm_v3_consensus_types_primitives.Slot `protobuf:"varint,3,opt,name=slot,proto3" json:"slot,omitempty" cast-type:"github.com/prysmaticlabs/prysm/v3/consensus-types/primitives.Slot"`
+	Slot        github_com_prysmaticlabs_prysm_v4_consensus_types_primitives.Slot `protobuf:"varint,3,opt,name=slot,proto3" json:"slot,omitempty" cast-type:"github.com/prysmaticlabs/prysm/v4/consensus-types/primitives.Slot"`
 	BlockHash   []byte                                                            `protobuf:"bytes,4,opt,name=block_hash,json=blockHash,proto3" json:"block_hash,omitempty" ssz-size:"32"`
 	Withdrawals []*v1.Withdrawal                                                  `protobuf:"bytes,5,rep,name=withdrawals,proto3" json:"withdrawals,omitempty" ssz-max:"16"`
 }
@@ -153,11 +153,11 @@ func (x *BuilderPayloadAttributesV2) GetPrevRandao() []byte {
 	return nil
 }
 
-func (x *BuilderPayloadAttributesV2) GetSlot() github_com_prysmaticlabs_prysm_v3_consensus_types_primitives.Slot {
+func (x *BuilderPayloadAttributesV2) GetSlot() github_com_prysmaticlabs_prysm_v4_consensus_types_primitives.Slot {
 	if x != nil {
 		return x.Slot
 	}
-	return github_com_prysmaticlabs_prysm_v3_consensus_types_primitives.Slot(0)
+	return github_com_prysmaticlabs_prysm_v4_consensus_types_primitives.Slot(0)
 }
 
 func (x *BuilderPayloadAttributesV2) GetBlockHash() []byte {
