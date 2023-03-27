@@ -5,8 +5,8 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	types "github.com/prysmaticlabs/prysm/v3/consensus-types/primitives"
-	v1 "github.com/prysmaticlabs/prysm/v3/proto/engine/v1"
+	types "github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
+	v1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
 type builderPayloadAttributesJSON struct {

@@ -4,8 +4,8 @@ package builder
 
 import (
 	ssz "github.com/prysmaticlabs/fastssz"
-	github_com_prysmaticlabs_prysm_v3_consensus_types_primitives "github.com/prysmaticlabs/prysm/v3/consensus-types/primitives"
-	v1 "github.com/prysmaticlabs/prysm/v3/proto/engine/v1"
+	github_com_prysmaticlabs_prysm_v4_consensus_types_primitives "github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
+	v1 "github.com/prysmaticlabs/prysm/v4/proto/engine/v1"
 )
 
 // MarshalSSZ ssz marshals the BuilderPayloadAttributes object
@@ -58,7 +58,7 @@ func (b *BuilderPayloadAttributes) UnmarshalSSZ(buf []byte) error {
 	b.PrevRandao = append(b.PrevRandao, buf[8:40]...)
 
 	// Field (2) 'Slot'
-	b.Slot = github_com_prysmaticlabs_prysm_v3_consensus_types_primitives.Slot(ssz.UnmarshallUint64(buf[40:48]))
+	b.Slot = github_com_prysmaticlabs_prysm_v4_consensus_types_primitives.Slot(ssz.UnmarshallUint64(buf[40:48]))
 
 	// Field (3) 'BlockHash'
 	if cap(b.BlockHash) == 0 {
@@ -181,7 +181,7 @@ func (b *BuilderPayloadAttributesV2) UnmarshalSSZ(buf []byte) error {
 	b.PrevRandao = append(b.PrevRandao, buf[8:40]...)
 
 	// Field (2) 'Slot'
-	b.Slot = github_com_prysmaticlabs_prysm_v3_consensus_types_primitives.Slot(ssz.UnmarshallUint64(buf[40:48]))
+	b.Slot = github_com_prysmaticlabs_prysm_v4_consensus_types_primitives.Slot(ssz.UnmarshallUint64(buf[40:48]))
 
 	// Field (3) 'BlockHash'
 	if cap(b.BlockHash) == 0 {

@@ -19,7 +19,7 @@ import "proto/eth/ext/options.proto";
 import "proto/engine/v1/execution_engine.proto";
 
 option csharp_namespace = "Ethereum.Builder";
-option go_package = "github.com/prysmaticlabs/prysm/v3/proto/builder;builder";
+option go_package = "github.com/prysmaticlabs/prysm/v4/proto/builder;builder";
 option java_multiple_files = true;
 option java_outer_classname = "BuilderProto";
 option java_package = "org.ethereum.builder";
@@ -28,14 +28,14 @@ option php_namespace = "Ethereum\\Builder";
 message BuilderPayloadAttributes {
 	uint64 timestamp              = 1;
 	bytes prev_randao             = 2 [(ethereum.eth.ext.ssz_size) = "32"];
-	uint64 slot 				  = 3 [(ethereum.eth.ext.cast_type) = "github.com/prysmaticlabs/prysm/v3/consensus-types/primitives.Slot"];
+	uint64 slot 				  = 3 [(ethereum.eth.ext.cast_type) = "github.com/prysmaticlabs/prysm/v4/consensus-types/primitives.Slot"];
 	bytes block_hash        	  = 4 [(ethereum.eth.ext.ssz_size) = "32"];
 }
 
 message BuilderPayloadAttributesV2 {
 	uint64 timestamp              						= 1;
 	bytes prev_randao             						= 2 [(ethereum.eth.ext.ssz_size) = "32"];
-	uint64 slot 				  						= 3 [(ethereum.eth.ext.cast_type) = "github.com/prysmaticlabs/prysm/v3/consensus-types/primitives.Slot"];
+	uint64 slot 				  						= 3 [(ethereum.eth.ext.cast_type) = "github.com/prysmaticlabs/prysm/v4/consensus-types/primitives.Slot"];
 	bytes block_hash        	  						= 4 [(ethereum.eth.ext.ssz_size) = "32"];
 	repeated ethereum.engine.v1.Withdrawal withdrawals 	= 5 [(ethereum.eth.ext.ssz_max) = "withdrawal.size"]; // New in Capella.
 }
