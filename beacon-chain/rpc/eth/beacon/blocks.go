@@ -1099,12 +1099,12 @@ func (bs *Server) submitBlock(ctx context.Context, blockRoot [fieldparams.RootLe
 	if err != nil {
 		return errors.Wrap(err, "could not get protobuf block")
 	}
-	if err := bs.Broadcaster.Broadcast(ctx, blockPb); err != nil {
-		return status.Errorf(codes.Internal, "Could not broadcast block: %v", err)
-	}
-
 	if err := bs.BlockReceiver.ReceiveBlock(ctx, block, blockRoot); err != nil {
 		return status.Errorf(codes.Internal, "Could not process beacon block: %v", err)
+	}
+
+	if err := bs.Broadcaster.Broadcast(ctx, blockPb); err != nil {
+		return status.Errorf(codes.Internal, "Could not broadcast block: %v", err)
 	}
 
 	return nil
