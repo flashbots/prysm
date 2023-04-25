@@ -41,6 +41,7 @@ type Server struct {
 	OptimisticModeFetcher         blockchain.OptimisticModeFetcher
 	V1Alpha1ValidatorServer       eth.BeaconNodeValidatorServer
 	SyncChecker                   sync.Checker
+	EqChecker                     sync.EqChecker
 	CanonicalHistory              *stategen.CanonicalHistory
 	ExecutionPayloadReconstructor execution.ExecutionPayloadReconstructor
 	FinalizationFetcher           blockchain.FinalizationFetcher
