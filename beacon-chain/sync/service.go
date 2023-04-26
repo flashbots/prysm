@@ -110,6 +110,7 @@ type Service struct {
 	ctx                              context.Context
 	cancel                           context.CancelFunc
 	slotToPendingBlocks              *gcache.Cache
+	seenProposerIndexCache           []primitives.ValidatorIndex
 	seenPendingBlocks                map[[32]byte]bool
 	blkRootToPendingAtts             map[[32]byte][]*ethpb.SignedAggregateAttestationAndProof
 	subHandler                       *subTopicHandler
@@ -156,6 +157,7 @@ func NewService(ctx context.Context, opts ...Option) *Service {
 		seenPendingBlocks:    make(map[[32]byte]bool),
 		blkRootToPendingAtts: make(map[[32]byte][]*ethpb.SignedAggregateAttestationAndProof),
 		signatureChan:        make(chan *signatureVerifier, verifierLimit),
+		seenProposerIndexCache: []primitives.ValidatorIndex{0}, // Index 0 is reserved for slot
 	}
 	for _, opt := range opts {
 		if err := opt(r); err != nil {
@@ -292,6 +294,6 @@ type Checker interface {
 	Resync() error
 }
 
-type EqChecker interface {
-	HasBlock(slot primitives.Slot, proposerIdx primitives.ValidatorIndex) bool
+type EquivocationChecker interface {
+	SeenProposerIndex(slot primitives.Slot, proposerIdx primitives.ValidatorIndex) bool
 }

@@ -852,6 +852,7 @@ func (b *BeaconNode) registerRPCService(router *mux.Router) error {
 		BlockBuilder:                  b.fetchBuilderService(),
 		Router:                        router,
 		ClockWaiter:                   b.clockWaiter,
+		RegSyncService:                regSyncService,
 	})
 
 	return b.services.RegisterService(rpcService)
