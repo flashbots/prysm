@@ -2,15 +2,11 @@ package beacon
 
 import (
 	"context"
-	"strings"
 
 	"github.com/pkg/errors"
-	rpchelpers "github.com/prysmaticlabs/prysm/v4/beacon-chain/rpc/eth/helpers"
-	"github.com/prysmaticlabs/prysm/v4/beacon-chain/rpc/prysm/v1alpha1/validator"
 	"github.com/prysmaticlabs/prysm/v4/config/params"
 	consensus_types "github.com/prysmaticlabs/prysm/v4/consensus-types"
 	"github.com/prysmaticlabs/prysm/v4/consensus-types/interfaces"
-	"github.com/prysmaticlabs/prysm/v4/encoding/bytesutil"
 	"github.com/prysmaticlabs/prysm/v4/encoding/ssz/detect"
 	"github.com/prysmaticlabs/prysm/v4/network/forks"
 	ethpbv1 "github.com/prysmaticlabs/prysm/v4/proto/eth/v1"
@@ -146,11 +142,6 @@ func (bs *Server) SubmitBlindedBlock(ctx context.Context, req *ethpbv2.SignedBli
 	ctx, span := trace.StartSpan(ctx, "beacon.SubmitBlindedBlock")
 	defer span.End()
 
-	if err := rpchelpers.ValidateSync(ctx, bs.SyncChecker, bs.HeadFetcher, bs.TimeFetcher, bs.OptimisticModeFetcher); err != nil {
-		// We simply return the error because it's already a gRPC error.
-		return nil, err
-	}
-
 	switch blkContainer := req.Message.(type) {
 	case *ethpbv2.SignedBlindedBeaconBlockContainer_CapellaBlock:
 		if err := bs.submitBlindedCapellaBlock(ctx, blkContainer.CapellaBlock, req.Signature); err != nil {
@@ -189,11 +180,6 @@ func (bs *Server) SubmitBlindedBlockSSZ(ctx context.Context, req *ethpbv2.SSZCon
 	ctx, span := trace.StartSpan(ctx, "beacon.SubmitBlindedBlockSSZ")
 	defer span.End()
 
-	if err := rpchelpers.ValidateSync(ctx, bs.SyncChecker, bs.HeadFetcher, bs.TimeFetcher, bs.OptimisticModeFetcher); err != nil {
-		// We simply return the error because it's already a gRPC error.
-		return nil, err
-	}
-
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return &emptypb.Empty{}, status.Errorf(codes.Internal, "Could not read"+versionHeader+" header")
@@ -216,84 +202,31 @@ func (bs *Server) SubmitBlindedBlockSSZ(ctx context.Context, req *ethpbv2.SSZCon
 		return &emptypb.Empty{}, status.Errorf(codes.Internal, "Could not unmarshal request data into block: %v", err)
 	}
 
-	switch forkVer {
-	case bytesutil.ToBytes4(params.BeaconConfig().CapellaForkVersion):
-		if !block.IsBlinded() {
-			return nil, status.Error(codes.InvalidArgument, "Submitted block is not blinded")
-		}
-		b, err := block.PbBlindedCapellaBlock()
-		if err != nil {
-			return &emptypb.Empty{}, status.Errorf(codes.Internal, "Could not get proto block: %v", err)
-		}
-		_, err = bs.V1Alpha1ValidatorServer.ProposeBeaconBlock(ctx, &eth.GenericSignedBeaconBlock{
-			Block: &eth.GenericSignedBeaconBlock_BlindedCapella{
-				BlindedCapella: b,
-			},
-		})
-		if err != nil {
-			if strings.Contains(err.Error(), validator.CouldNotDecodeBlock) {
-				return &emptypb.Empty{}, status.Error(codes.InvalidArgument, err.Error())
-			}
-			return &emptypb.Empty{}, status.Errorf(codes.Internal, "Could not propose block: %v", err)
-		}
-		return &emptypb.Empty{}, nil
-	case bytesutil.ToBytes4(params.BeaconConfig().BellatrixForkVersion):
-		if !block.IsBlinded() {
-			return nil, status.Error(codes.InvalidArgument, "Submitted block is not blinded")
-		}
+	if block.IsBlinded() {
 		b, err := block.PbBlindedBellatrixBlock()
 		if err != nil {
-			return &emptypb.Empty{}, status.Errorf(codes.Internal, "Could not get proto block: %v", err)
-		}
-		_, err = bs.V1Alpha1ValidatorServer.ProposeBeaconBlock(ctx, &eth.GenericSignedBeaconBlock{
-			Block: &eth.GenericSignedBeaconBlock_BlindedBellatrix{
-				BlindedBellatrix: b,
-			},
-		})
-		if err != nil {
-			if strings.Contains(err.Error(), validator.CouldNotDecodeBlock) {
-				return &emptypb.Empty{}, status.Error(codes.InvalidArgument, err.Error())
+			b, err := block.PbBlindedCapellaBlock()
+			if err != nil {
+				return &emptypb.Empty{}, status.Errorf(codes.Internal, "Could not get blinded block: %v", err)
 			}
-			return &emptypb.Empty{}, status.Errorf(codes.Internal, "Could not propose block: %v", err)
-		}
-		return &emptypb.Empty{}, nil
-	case bytesutil.ToBytes4(params.BeaconConfig().AltairForkVersion):
-		b, err := block.PbAltairBlock()
-		if err != nil {
-			return &emptypb.Empty{}, status.Errorf(codes.Internal, "Could not get proto block: %v", err)
-		}
-		_, err = bs.V1Alpha1ValidatorServer.ProposeBeaconBlock(ctx, &eth.GenericSignedBeaconBlock{
-			Block: &eth.GenericSignedBeaconBlock_Altair{
-				Altair: b,
-			},
-		})
-		if err != nil {
-			if strings.Contains(err.Error(), validator.CouldNotDecodeBlock) {
-				return &emptypb.Empty{}, status.Error(codes.InvalidArgument, err.Error())
+			bb, err := migration.V1Alpha1BeaconBlockBlindedCapellaToV2Blinded(b.Block)
+			if err != nil {
+				return &emptypb.Empty{}, status.Errorf(codes.Internal, "Could not migrate block: %v", err)
 			}
-			return &emptypb.Empty{}, status.Errorf(codes.Internal, "Could not propose block: %v", err)
+			return &emptypb.Empty{}, bs.submitBlindedCapellaBlock(ctx, bb, b.Signature)
 		}
-		return &emptypb.Empty{}, nil
-	case bytesutil.ToBytes4(params.BeaconConfig().GenesisForkVersion):
-		b, err := block.PbPhase0Block()
+		bb, err := migration.V1Alpha1BeaconBlockBlindedBellatrixToV2Blinded(b.Block)
 		if err != nil {
-			return &emptypb.Empty{}, status.Errorf(codes.Internal, "Could not get proto block: %v", err)
+			return &emptypb.Empty{}, status.Errorf(codes.Internal, "Could not migrate block: %v", err)
 		}
-		_, err = bs.V1Alpha1ValidatorServer.ProposeBeaconBlock(ctx, &eth.GenericSignedBeaconBlock{
-			Block: &eth.GenericSignedBeaconBlock_Phase0{
-				Phase0: b,
-			},
-		})
-		if err != nil {
-			if strings.Contains(err.Error(), validator.CouldNotDecodeBlock) {
-				return &emptypb.Empty{}, status.Error(codes.InvalidArgument, err.Error())
-			}
-			return &emptypb.Empty{}, status.Errorf(codes.Internal, "Could not propose block: %v", err)
-		}
-		return &emptypb.Empty{}, nil
-	default:
-		return &emptypb.Empty{}, status.Errorf(codes.InvalidArgument, "Unsupported fork %s", string(forkVer[:]))
+		return &emptypb.Empty{}, bs.submitBlindedBellatrixBlock(ctx, bb, b.Signature)
 	}
+
+	root, err := block.Block().HashTreeRoot()
+	if err != nil {
+		return &emptypb.Empty{}, status.Errorf(codes.Internal, "Could not compute block's hash tree root: %v", err)
+	}
+	return &emptypb.Empty{}, bs.submitBlock(ctx, root, block)
 }
 
 func getBlindedBlockPhase0(blk interfaces.ReadOnlySignedBeaconBlock) (*ethpbv2.BlindedBlockResponse, error) {
@@ -637,7 +570,7 @@ func (bs *Server) submitBlindedBellatrixBlock(ctx context.Context, blindedBellat
 		Signature: sig,
 	})
 	if err != nil {
-		return status.Errorf(codes.Internal, "Could not convert block: %v", err)
+		return status.Errorf(codes.Internal, "Could not get blinded block: %v", err)
 	}
 	_, err = bs.V1Alpha1ValidatorServer.ProposeBeaconBlock(ctx, &eth.GenericSignedBeaconBlock{
 		Block: &eth.GenericSignedBeaconBlock_BlindedBellatrix{
@@ -645,9 +578,6 @@ func (bs *Server) submitBlindedBellatrixBlock(ctx context.Context, blindedBellat
 		},
 	})
 	if err != nil {
-		if strings.Contains(err.Error(), validator.CouldNotDecodeBlock) {
-			return status.Error(codes.InvalidArgument, err.Error())
-		}
 		return status.Errorf(codes.Internal, "Could not propose blinded block: %v", err)
 	}
 	return nil
@@ -659,7 +589,7 @@ func (bs *Server) submitBlindedCapellaBlock(ctx context.Context, blindedCapellaB
 		Signature: sig,
 	})
 	if err != nil {
-		return status.Errorf(codes.Internal, "Could not convert block: %v", err)
+		return status.Errorf(codes.Internal, "Could not get blinded block: %v", err)
 	}
 	_, err = bs.V1Alpha1ValidatorServer.ProposeBeaconBlock(ctx, &eth.GenericSignedBeaconBlock{
 		Block: &eth.GenericSignedBeaconBlock_BlindedCapella{
@@ -667,9 +597,6 @@ func (bs *Server) submitBlindedCapellaBlock(ctx context.Context, blindedCapellaB
 		},
 	})
 	if err != nil {
-		if strings.Contains(err.Error(), validator.CouldNotDecodeBlock) {
-			return status.Error(codes.InvalidArgument, err.Error())
-		}
 		return status.Errorf(codes.Internal, "Could not propose blinded block: %v", err)
 	}
 	return nil
